@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Slab Agent — Diagnostic</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #1c1917; }
+  h1 { margin-top: 0; }
+  .test {
+    border: 1px solid #e7e5e4;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .test h3 { margin: 0 0 6px 0; font-size: 16px; }
+  .test .desc { color: #78716c; font-size: 14px; margin-bottom: 10px; }
+  button {
+    background: #1c1917; color: white; border: none;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer;
+    font-size: 14px;
+  }
+  button:disabled { background: #d6d3d1; cursor: not-allowed; }
+  .result {
+    margin-top: 10px; padding: 10px;
+    border-radius: 4px; font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px; white-space: pre-wrap; word-break: break-all;
+    background: #fafaf9; border: 1px solid #e7e5e4;
+    max-height: 240px; overflow-y: auto;
+  }
+  .result.pass { background: #f0fdf4; border-color: #86efac; color: #166534; }
+  .result.fail { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+  .keybox { background: #fef3c7; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+  .keybox input { width: 100%; padding: 6px; font-family: monospace; margin-top: 6px; }
+  .meta { color: #78716c; font-size: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<h1>Slab Agent — Diagnostic</h1>
+<p style="color:#78716c">Tests each layer of the agent separately so we can see exactly which one is broken. Run them in order. Stop at the first failure and screenshot the result.</p>
+
+<div class="keybox">
+  <label><strong>Anthropic API Key</strong> (loaded from your browser, same as the main agent)</label>
+  <input id="apiKey" type="password" placeholder="sk-ant-..." />
+  <div class="meta">Loaded automatically if you already used the main agent in this browser. Otherwise paste it here.</div>
+</div>
+
+<div class="test">
+  <h3>Test 1 — Basic API call (no tools, no streaming)</h3>
+  <div class="desc">Sends a simple "hello" message to Claude. Confirms your key works and basic networking is fine. Should complete in 1–3 seconds.</div>
+  <button onclick="runTest1()" id="btn1">Run Test 1</button>
+  <div class="result" id="r1" style="display:none"></div>
+</div>
+
+<div class="test">
+  <h3>Test 2 — Streaming (no tools)</h3>
+  <div class="desc">Same simple call but with stream:true. Confirms server-sent events flow from Anthropic to Safari. Should complete in 1–3 seconds.</div>
+  <button onclick="runTest2()" id="btn2">Run Test 2</button>
+  <div class="result" id="r2" style="display:none"></div>
+</div>
+
+<div class="test">
+  <h3>Test 3 — Web search tool</h3>
+  <div class="desc">Asks Claude to do exactly one web search for "Crema Marfil marble slab" with the web_search server tool. Confirms web_search is enabled on your account and reachable. Should complete in 10–30 seconds.</div>
+  <button onclick="runTest3()" id="btn3">Run Test 3</button>
+  <div class="result" id="r3" style="display:none"></div>
+</div>
+
+<div class="test">
+  <h3>Test 4 — Web search tool with structured output</h3>
+  <div class="desc">Exactly what the main agent's search stage does, but simplified. Combines web_search with a structured output tool. Should complete in 30–60 seconds.</div>
+  <button onclick="runTest4()" id="btn4">Run Test 4</button>
+  <div class="result" id="r4" style="display:none"></div>
+</div>
+
+<p style="margin-top:30px;color:#78716c;font-size:14px">
+  If Test 1 fails → API key or network issue.<br>
+  If Test 1 passes but Test 2 fails → streaming/SSE issue in Safari.<br>
+  If Tests 1 &amp; 2 pass but Test 3 fails → web_search tool isn't enabled on your account or is misconfigured.<br>
+  If Tests 1–3 pass but Test 4 fails → the main agent's prompt or tool combination is the problem.
+</p>
+
+<script>
+const apiKeyInput = document.getElementById('apiKey');
+apiKeyInput.value = localStorage.getItem('anthropic_api_key') || '';
+apiKeyInput.onchange = () => localStorage.setItem('anthropic_api_key', apiKeyInput.value);
+
+const HEADERS = () => ({
+  'Content-Type': 'application/json',
+  'x-api-key': apiKeyInput.value.trim(),
+  'anthropic-version': '2023-06-01',
+  'anthropic-dangerous-direct-browser-access': 'true',
+});
+
+function show(id, status, text) {
+  const r = document.getElementById(id);
+  r.style.display = 'block';
+  r.className = 'result ' + status;
+  r.textContent = text;
+}
+
+async function runTest1() {
+  const btn = document.getElementById('btn1');
+  btn.disabled = true;
+  show('r1', '', 'Running...');
+  const t0 = Date.now();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: HEADERS(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 50,
+        messages: [{ role: 'user', content: 'Reply with exactly the word: working' }],
+      }),
+    });
+    const data = await res.json();
+    const dt = Date.now() - t0;
+    if (!res.ok) {
+      show('r1', 'fail', `HTTP ${res.status} after ${dt}ms\n\n${JSON.stringify(data, null, 2)}`);
+    } else {
+      const text = data.content?.find(c => c.type === 'text')?.text || '(no text)';
+      show('r1', 'pass', `✓ PASS in ${dt}ms\n\nResponse: ${text}\n\nFull: ${JSON.stringify(data, null, 2).slice(0, 500)}...`);
+    }
+  } catch (err) {
+    show('r1', 'fail', `✗ FAIL: ${err.name}: ${err.message}\n\nThis is usually a network or CORS issue.`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function runTest2() {
+  const btn = document.getElementById('btn2');
+  btn.disabled = true;
+  show('r2', '', 'Running...');
+  const t0 = Date.now();
+  let eventLog = [];
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: HEADERS(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 50,
+        stream: true,
+        messages: [{ role: 'user', content: 'Reply with exactly the word: working' }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      show('r2', 'fail', `HTTP ${res.status}: ${err}`);
+      return;
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      buf = buf.replace(/\r\n/g, '\n');
+      let i;
+      while ((i = buf.indexOf('\n\n')) !== -1) {
+        const ev = buf.slice(0, i);
+        buf = buf.slice(i + 2);
+        const dl = ev.split('\n').find(l => l.startsWith('data: '));
+        if (!dl) continue;
+        try {
+          const e = JSON.parse(dl.slice(6));
+          eventLog.push(e.type);
+        } catch {}
+      }
+    }
+    const dt = Date.now() - t0;
+    show('r2', 'pass', `✓ PASS in ${dt}ms\n\nReceived ${eventLog.length} SSE events:\n${eventLog.join('\n')}`);
+  } catch (err) {
+    show('r2', 'fail', `✗ FAIL: ${err.name}: ${err.message}\n\nEvents received before failure: ${eventLog.length}\n${eventLog.join('\n')}`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function runTest3() {
+  const btn = document.getElementById('btn3');
+  btn.disabled = true;
+  show('r3', '', 'Running... (this can take 10–30s)');
+  const t0 = Date.now();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: HEADERS(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 1 }],
+        messages: [{ role: 'user', content: 'Search the web for "Crema Marfil marble slab" and tell me one supplier name you found.' }],
+      }),
+    });
+    const data = await res.json();
+    const dt = Date.now() - t0;
+    if (!res.ok) {
+      show('r3', 'fail', `HTTP ${res.status} after ${dt}ms\n\n${JSON.stringify(data, null, 2)}`);
+      return;
+    }
+    const searchUses = (data.content || []).filter(c => c.type === 'server_tool_use' && c.name === 'web_search');
+    const searchResults = (data.content || []).filter(c => c.type === 'web_search_tool_result');
+    const text = (data.content || []).find(c => c.type === 'text')?.text || '(no text response)';
+    const summary = `Searches used: ${searchUses.length}\nSearch results: ${searchResults.length}\nstop_reason: ${data.stop_reason}\n\nQueries: ${searchUses.map(s => s.input?.query).join(' | ')}\n\nResponse text:\n${text.slice(0, 400)}`;
+    if (searchUses.length === 0) {
+      show('r3', 'fail', `✗ FAIL in ${dt}ms — model did not use web_search\n\n${summary}\n\nFull response:\n${JSON.stringify(data, null, 2).slice(0, 800)}`);
+    } else {
+      show('r3', 'pass', `✓ PASS in ${dt}ms\n\n${summary}`);
+    }
+  } catch (err) {
+    show('r3', 'fail', `✗ FAIL: ${err.name}: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function runTest4() {
+  const btn = document.getElementById('btn4');
+  btn.disabled = true;
+  show('r4', '', 'Running... (this can take 30–60s)');
+  const t0 = Date.now();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: HEADERS(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        tools: [
+          { type: 'web_search_20260209', name: 'web_search', max_uses: 2 },
+          {
+            name: 'record_finding',
+            description: 'Record one supplier found.',
+            input_schema: {
+              type: 'object',
+              properties: {
+                supplier_name: { type: 'string' },
+                slab_name: { type: 'string' },
+                source_url: { type: 'string' },
+              },
+              required: ['supplier_name', 'slab_name'],
+            },
+          },
+        ],
+        messages: [{ role: 'user', content: 'Search the web for one US supplier carrying Crema Marfil marble. Then call record_finding with the supplier name, slab name, and source URL.' }],
+      }),
+    });
+    const data = await res.json();
+    const dt = Date.now() - t0;
+    if (!res.ok) {
+      show('r4', 'fail', `HTTP ${res.status} after ${dt}ms\n\n${JSON.stringify(data, null, 2)}`);
+      return;
+    }
+    const searchUses = (data.content || []).filter(c => c.type === 'server_tool_use' && c.name === 'web_search');
+    const toolUse = (data.content || []).find(c => c.type === 'tool_use' && c.name === 'record_finding');
+    if (toolUse) {
+      show('r4', 'pass', `✓ PASS in ${dt}ms\n\nSearches: ${searchUses.length}\nstop_reason: ${data.stop_reason}\n\nStructured output:\n${JSON.stringify(toolUse.input, null, 2)}`);
+    } else {
+      show('r4', 'fail', `✗ FAIL in ${dt}ms — model did ${searchUses.length} search(es) but did not produce structured output\n\nstop_reason: ${data.stop_reason}\n\nFull response:\n${JSON.stringify(data, null, 2).slice(0, 1200)}`);
+    }
+  } catch (err) {
+    show('r4', 'fail', `✗ FAIL: ${err.name}: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

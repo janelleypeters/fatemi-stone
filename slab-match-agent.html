@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fatemi Stone — Visual Slab Match Agent</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #faf8f5; color: #1c1917; }
+  .serif { font-family: 'Playfair Display', Georgia, serif; }
+  .gradient-bg { background: linear-gradient(135deg, #faf8f5 0%, #f5f1ea 100%); }
+  .stone-card {
+    background: white;
+    border: 1px solid #e7e5e4;
+    transition: all 0.2s ease;
+  }
+  .stone-card:hover { border-color: #a8a29e; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .drop-zone {
+    border: 2px dashed #d6d3d1;
+    transition: all 0.2s ease;
+  }
+  .drop-zone.dragover { border-color: #78716c; background: #f5f5f4; }
+  .agent-log-entry {
+    opacity: 0;
+    animation: slideIn 0.3s forwards;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .pulse-dot {
+    width: 6px; height: 6px;
+    background: #78716c;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.4s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  .similarity-bar {
+    background: linear-gradient(90deg, #1c1917 var(--score), #e7e5e4 var(--score));
+  }
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<header class="border-b border-stone-200 bg-white">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div>
+      <h1 class="serif text-2xl font-semibold tracking-tight">Fatemi Stone</h1>
+      <p class="text-xs text-stone-500 uppercase tracking-widest">Visual Slab Match Agent</p>
+    </div>
+    <button id="settingsBtn" class="text-sm text-stone-600 hover:text-stone-900">Settings</button>
+  </div>
+</header>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <h3 class="serif text-xl font-semibold mb-1">Anthropic API Key</h3>
+    <p class="text-sm text-stone-500 mb-4">Stored only in your browser. Get one at console.anthropic.com.</p>
+    <input id="apiKeyInput" type="password" placeholder="sk-ant-..." class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono" />
+    <div class="flex gap-2 mt-4 justify-end">
+      <button id="cancelSettings" class="px-4 py-2 text-sm text-stone-600 hover:text-stone-900">Cancel</button>
+      <button id="saveSettings" class="px-4 py-2 text-sm bg-stone-900 text-white rounded hover:bg-stone-800">Save</button>
+    </div>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-6 py-10">
+
+  <!-- Upload Section -->
+  <section id="uploadSection">
+    <div class="text-center mb-10">
+      <h2 class="serif text-4xl font-semibold mb-3">Find the slab.</h2>
+      <p class="text-stone-600 max-w-xl mx-auto">Upload a photo of a stone slab your client wants. The agent identifies it, scans US distributors, and returns visually similar slabs with full specs and pricing.</p>
+    </div>
+
+    <!-- Two side-by-side panels: REFINE SEARCH (client info) + SEARCH CRITERIA -->
+    <div class="grid md:grid-cols-2 gap-6 items-start mb-6">
+
+      <!-- REFINE SEARCH (client info) -->
+      <div class="space-y-4 bg-white border border-stone-200 rounded-lg p-5">
+        <h3 class="font-semibold text-sm uppercase tracking-wider text-stone-500">Refine search</h3>
+        <p class="text-xs text-stone-500 -mt-2">Tell us who's asking</p>
+        <div>
+          <label class="text-sm text-stone-700">Full name</label>
+          <input id="clientNameInput" type="text" placeholder="Jane Smith" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm" />
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Email address</label>
+          <input id="clientEmailInput" type="email" placeholder="jane@example.com" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm" />
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Phone number</label>
+          <input id="clientPhoneInput" type="tel" placeholder="(404) 555-0100" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm" />
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Full address</label>
+          <textarea id="clientAddressInput" rows="2" placeholder="123 Main St, Atlanta, GA 30309" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm"></textarea>
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Client type</label>
+          <select id="clientTypeInput" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm bg-white">
+            <option value="">Select one</option>
+            <option value="Designer/Architect">Designer / Architect</option>
+            <option value="Builder/General Contractor">Builder / General Contractor</option>
+            <option value="Developer">Developer</option>
+            <option value="Installer/Fabricator">Installer / Fabricator</option>
+            <option value="Distributor/Dealer">Distributor / Dealer</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- SEARCH CRITERIA -->
+      <div class="space-y-4 bg-white border border-stone-200 rounded-lg p-5">
+        <h3 class="font-semibold text-sm uppercase tracking-wider text-stone-500">Search criteria</h3>
+        <p class="text-xs text-stone-500 -mt-2">United States distributors only</p>
+        <div>
+          <label class="text-sm text-stone-700">Region</label>
+          <select id="regionInput" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm bg-white">
+            <option value="">Anywhere in US</option>
+            <option value="East Coast">East Coast (NY, NJ, PA, MA, CT, RI, ME, NH, VT, DE, MD, DC, VA, NC, SC, GA, FL)</option>
+            <option value="West Coast">West Coast (CA, OR, WA, AK, HI)</option>
+            <option value="South">South (TX, OK, AR, LA, MS, AL, TN, KY)</option>
+            <option value="North">North (MI, MN, WI, ND, SD, MT, ID, WY)</option>
+            <option value="Central">Central (NE, KS, MO, IA, IL, IN, OH, CO, NM, AZ, UT, NV)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Quantity of slabs needed</label>
+          <select id="quantityInput" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm bg-white">
+            <option value="">Not specified</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="More">More than 20</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Latest date of need</label>
+          <input id="dateNeededInput" type="date" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm bg-white" />
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Receiving ZIP code <span class="text-stone-400">(delivery destination)</span></label>
+          <input id="receivingZipInput" type="text" placeholder="30328" maxlength="10" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm" />
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Thickness</label>
+          <select id="thicknessInput" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm bg-white">
+            <option value="">Any</option>
+            <option value="2cm">2cm</option>
+            <option value="3cm">3cm</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Finish</label>
+          <select id="finishInput" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm bg-white">
+            <option value="">Any</option>
+            <option value="polished">Polished</option>
+            <option value="honed">Honed</option>
+            <option value="leathered">Leathered</option>
+            <option value="brushed">Brushed</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-stone-700">Notes <span class="text-stone-400">(optional)</span></label>
+          <textarea id="notesInput" rows="2" placeholder="e.g. book-matched, large format, low movement" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo upload — full width, below the two panels -->
+    <div class="mb-2">
+      <label for="fileInput" id="dropZone" class="drop-zone block rounded-lg p-12 text-center cursor-pointer bg-white">
+        <div id="dropContent">
+          <svg class="w-12 h-12 mx-auto text-stone-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
+          <p class="text-stone-700 font-medium">Drop a slab photo here</p>
+          <p class="text-sm text-stone-500 mt-1">or click to browse — JPG, PNG, up to 10MB</p>
+        </div>
+        <div id="previewContent" class="hidden">
+          <img id="previewImg" class="max-h-64 mx-auto rounded shadow-sm" />
+          <p id="fileName" class="text-sm text-stone-500 mt-3"></p>
+          <button id="clearImage" class="text-xs text-stone-500 underline mt-1">Choose a different photo</button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" class="hidden" />
+      </label>
+    </div>
+
+    <div class="mt-6 text-center flex items-center justify-center gap-3">
+      <button id="searchBtn" disabled class="bg-stone-900 text-white px-8 py-3 rounded font-medium hover:bg-stone-800 disabled:bg-stone-300 disabled:cursor-not-allowed transition">
+        Find matching slabs
+      </button>
+      <button id="stopBtn" class="hidden bg-red-600 text-white px-6 py-3 rounded font-medium hover:bg-red-700 transition">
+        Stop
+      </button>
+    </div>
+  </section>
+
+  <!-- Agent Working Section -->
+  <section id="workingSection" class="hidden mt-10">
+    <div class="bg-white border border-stone-200 rounded-lg p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="pulse-dot"></span>
+        <h3 class="font-semibold">Agent working</h3>
+      </div>
+      <div id="agentLog" class="space-y-2 text-sm font-mono text-stone-600 max-h-80 overflow-y-auto"></div>
+    </div>
+  </section>
+
+  <!-- Visual Analysis Card -->
+  <section id="analysisSection" class="hidden mt-10">
+    <h3 class="serif text-2xl font-semibold mb-4">What the agent sees</h3>
+    <div id="analysisCard" class="bg-white border border-stone-200 rounded-lg p-6 grid md:grid-cols-3 gap-6"></div>
+  </section>
+
+  <!-- Results Section -->
+  <section id="resultsSection" class="hidden mt-10">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <div>
+        <h3 class="serif text-2xl font-semibold">Matched slabs</h3>
+        <span id="resultsCount" class="text-sm text-stone-500"></span>
+      </div>
+      <div class="text-right">
+        <button id="emailBtn" class="bg-stone-900 text-white px-5 py-2 rounded text-sm font-medium hover:bg-stone-800">
+          Email this report to me →
+        </button>
+        <p id="emailHint" class="hidden text-xs text-emerald-700 mt-2 max-w-xs">Reference photo just downloaded — drag it into the email from your Downloads folder.</p>
+      </div>
+    </div>
+    <div id="resultsGrid" class="grid md:grid-cols-2 gap-5"></div>
+  </section>
+
+  <!-- Error Section -->
+  <section id="errorSection" class="hidden mt-10">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+      <h3 class="font-semibold text-red-900 mb-2">Something went wrong</h3>
+      <p id="errorMessage" class="text-sm text-red-800"></p>
+      <button id="retryBtn" class="mt-4 text-sm underline text-red-900">Try again</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="mt-20 border-t border-stone-200 py-6 text-center text-xs text-stone-500">
+  Fatemi Stone — AI-powered sourcing for the architectural stone industry
+</footer>
+
+<script>
+// ====== STATE ======
+const state = {
+  apiKey: localStorage.getItem('anthropic_api_key') || '',
+  imageFile: null,
+  imageBase64: null,
+  imageMediaType: null,
+};
+
+const MODEL = 'claude-sonnet-4-6';
+
+// ====== ELEMENTS ======
+const $ = id => document.getElementById(id);
+const fileInput = $('fileInput');
+const dropZone = $('dropZone');
+const previewImg = $('previewImg');
+const dropContent = $('dropContent');
+const previewContent = $('previewContent');
+const fileName = $('fileName');
+const searchBtn = $('searchBtn');
+
+// ====== SETTINGS ======
+$('settingsBtn').onclick = () => {
+  $('apiKeyInput').value = state.apiKey;
+  $('settingsModal').classList.remove('hidden');
+};
+$('cancelSettings').onclick = () => $('settingsModal').classList.add('hidden');
+$('saveSettings').onclick = () => {
+  state.apiKey = $('apiKeyInput').value.trim();
+  localStorage.setItem('anthropic_api_key', state.apiKey);
+  $('settingsModal').classList.add('hidden');
+  updateSearchButton();
+};
+
+// Show settings on first load if no key
+if (!state.apiKey) {
+  setTimeout(() => $('settingsBtn').click(), 300);
+}
+
+// ====== UPLOAD ======
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+$('clearImage').onclick = e => {
+  e.preventDefault();
+  e.stopPropagation();
+  state.imageFile = null;
+  state.imageBase64 = null;
+  dropContent.classList.remove('hidden');
+  previewContent.classList.add('hidden');
+  fileInput.value = '';
+  updateSearchButton();
+};
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  state.imageFile = file;
+  state.imageMediaType = file.type;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    state.imageBase64 = dataUrl.split(',')[1];
+    previewImg.src = dataUrl;
+    fileName.textContent = `${file.name} · ${(file.size / 1024).toFixed(0)} KB`;
+    dropContent.classList.add('hidden');
+    previewContent.classList.remove('hidden');
+    updateSearchButton();
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateSearchButton() {
+  searchBtn.disabled = !(state.apiKey && state.imageBase64);
+}
+
+// ====== AGENT LOG ======
+function logStep(text, status = 'info') {
+  const log = $('agentLog');
+  const colors = { info: 'text-stone-600', success: 'text-emerald-700', warn: 'text-amber-700' };
+  const div = document.createElement('div');
+  div.className = `agent-log-entry ${colors[status] || colors.info}`;
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  div.innerHTML = `<span class="text-stone-400">${time}</span> ${text}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ====== ELAPSED TIMER ======
+let timerInterval = null;
+function startTimer(label) {
+  stopTimer();
+  const start = Date.now();
+  searchBtn.textContent = `${label} 0s`;
+  timerInterval = setInterval(() => {
+    const sec = Math.floor((Date.now() - start) / 1000);
+    searchBtn.textContent = `${label} ${sec}s`;
+  }, 500);
+}
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+// ====== CLAUDE API CALL (non-streaming) ======
+// Used for both vision and search stages. Accepts an optional AbortSignal
+// so the search stage can be cancelled via the Stop button or hard timeout.
+async function callClaude(messages, tools, system, signal = null, maxTokens = 4096) {
+  const body = {
+    model: MODEL,
+    max_tokens: maxTokens,
+    system,
+    messages,
+  };
+  if (tools) body.tools = tools;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': state.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`API error ${res.status}: ${errText}`);
+  }
+  return await res.json();
+}
+
+// ====== ABORT CONTROL ======
+let currentAbortController = null;
+function abortCurrentRequest(reason) {
+  if (currentAbortController) {
+    currentAbortController.abort(reason || 'user_cancel');
+    currentAbortController = null;
+  }
+}
+
+// ====== CLAUDE STREAMING API (used for search stage) ======
+// Streams server-sent events so we can log each web search as it happens.
+// onEvent receives objects like { phase, ...details } for live UI updates.
+// Aborts automatically if no SSE event arrives within INACTIVITY_TIMEOUT_MS.
+const INACTIVITY_TIMEOUT_MS = 45000;
+async function callClaudeStreaming(messages, tools, system, onEvent) {
+  const body = {
+    model: MODEL,
+    max_tokens: 2048,
+    stream: true,
+    system,
+    messages,
+  };
+  if (tools) body.tools = tools;
+
+  currentAbortController = new AbortController();
+  const signal = currentAbortController.signal;
+
+  let lastEventTime = Date.now();
+  const watchdog = setInterval(() => {
+    if (Date.now() - lastEventTime > INACTIVITY_TIMEOUT_MS) {
+      abortCurrentRequest('inactivity_timeout');
+    }
+  }, 2000);
+
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (err) {
+    clearInterval(watchdog);
+    if (err.name === 'AbortError') throw new Error('Request aborted (no response from server).');
+    throw err;
+  }
+
+  if (!res.ok) {
+    clearInterval(watchdog);
+    const errText = await res.text();
+    throw new Error(`API error ${res.status}: ${errText}`);
+  }
+
+  if (onEvent) onEvent({ phase: 'stream_open' });
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  const blocks = [];
+  let stopReason = null;
+  let apiError = null;
+  let eventCount = 0;
+
+  try {
+    while (true) {
+      let chunk;
+      try {
+        chunk = await reader.read();
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          throw new Error(`Stream aborted (${signal.reason || 'no reason'}). Received ${eventCount} events.`);
+        }
+        throw err;
+      }
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      // Normalize CRLF
+      buffer = buffer.replace(/\r\n/g, '\n');
+
+      let sepIdx;
+      while ((sepIdx = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, sepIdx);
+        buffer = buffer.slice(sepIdx + 2);
+        const dataLine = rawEvent.split('\n').find(l => l.startsWith('data: '));
+        if (!dataLine) continue;
+        let evt;
+        try { evt = JSON.parse(dataLine.slice(6)); } catch (e) { continue; }
+
+        eventCount++;
+        lastEventTime = Date.now();
+        console.log('[SSE]', evt.type, evt);
+
+        if (evt.type === 'error') {
+          apiError = evt.error?.message || JSON.stringify(evt.error);
+        } else if (evt.type === 'content_block_start') {
+          blocks[evt.index] = { ...evt.content_block, _partialJson: '' };
+          if (onEvent && evt.content_block.type === 'server_tool_use' && evt.content_block.name === 'web_search') {
+            onEvent({ phase: 'search_start' });
+          }
+        } else if (evt.type === 'content_block_delta') {
+          const block = blocks[evt.index];
+          if (!block) continue;
+          if (evt.delta.type === 'input_json_delta') {
+            block._partialJson += evt.delta.partial_json;
+          } else if (evt.delta.type === 'text_delta') {
+            block.text = (block.text || '') + evt.delta.text;
+          }
+        } else if (evt.type === 'content_block_stop') {
+          const block = blocks[evt.index];
+          if (!block) continue;
+          if (block._partialJson) {
+            try { block.input = JSON.parse(block._partialJson); } catch (e) {}
+          }
+          delete block._partialJson;
+          if (onEvent) {
+            if (block.type === 'server_tool_use' && block.name === 'web_search') {
+              onEvent({ phase: 'search_query', query: block.input?.query });
+            } else if (block.type === 'web_search_tool_result') {
+              const count = Array.isArray(block.content) ? block.content.length : 0;
+              onEvent({ phase: 'search_result_complete', count });
+            } else if (block.type === 'tool_use') {
+              onEvent({ phase: 'tool_use_complete', name: block.name, input: block.input });
+            }
+          }
+        } else if (evt.type === 'message_delta') {
+          if (evt.delta?.stop_reason) stopReason = evt.delta.stop_reason;
+        }
+      }
+    }
+  } finally {
+    clearInterval(watchdog);
+    currentAbortController = null;
+  }
+
+  if (apiError) throw new Error(`API stream error: ${apiError}`);
+  return { content: blocks.filter(b => b), stop_reason: stopReason, eventCount };
+}
+
+// ====== STAGE 1: VISION ANALYSIS ======
+async function analyzeImage() {
+  logStep('Analyzing slab image with vision model...');
+
+  const visionTool = {
+    name: 'record_slab_analysis',
+    description: 'Record the structured analysis of the stone slab in the image.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        stone_category: { type: 'string', enum: ['marble', 'quartzite', 'granite', 'quartz', 'onyx', 'travertine', 'limestone', 'soapstone', 'other'], description: 'The likely category of stone.' },
+        base_color: { type: 'string', description: 'Dominant base color (e.g. "white", "warm beige", "charcoal grey").' },
+        secondary_colors: { type: 'array', items: { type: 'string' }, description: 'Other prominent colors in the slab.' },
+        veining_pattern: { type: 'string', description: 'Describe the veining: linear, swirly, book-matched, dense, sparse, etc.' },
+        veining_color: { type: 'string', description: 'Color of the veining.' },
+        movement_level: { type: 'string', enum: ['none', 'low', 'medium', 'high', 'dramatic'], description: 'How much visual movement the slab has.' },
+        contrast_level: { type: 'string', enum: ['low', 'medium', 'high'], description: 'Contrast between base and veining.' },
+        likely_finish: { type: 'string', enum: ['polished', 'honed', 'leathered', 'brushed', 'unknown'], description: 'Apparent finish.' },
+        candidate_names: { type: 'array', items: { type: 'string' }, description: 'Up to 4 specific commercial slab names this could plausibly be (e.g. "Calacatta Gold", "Taj Mahal", "Mont Blanc").' },
+        search_keywords: { type: 'array', items: { type: 'string' }, description: '6-8 distinct keyword phrases to search distributor sites for visually similar slabs.' },
+        visual_summary: { type: 'string', description: '1-2 sentence summary of what this slab looks like, written for a stone professional.' },
+      },
+      required: ['stone_category', 'base_color', 'veining_pattern', 'movement_level', 'candidate_names', 'search_keywords', 'visual_summary'],
+    },
+  };
+
+  const result = await callClaude(
+    [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: state.imageMediaType, data: state.imageBase64 } },
+        { type: 'text', text: 'Analyze this stone slab in detail. Identify what kind of stone it is, its visual characteristics, and what specific commercial slab names it could be. Generate keyword phrases an expert would use to find visually similar slabs on US distributor websites.' },
+      ],
+    }],
+    [visionTool],
+    'You are a world-class natural stone expert with 30 years of experience identifying slabs. You know every major marble, quartzite, granite, and engineered surface on the US market. You are precise, never speculative beyond what the image supports.'
+  );
+
+  const toolUse = result.content.find(c => c.type === 'tool_use');
+  if (!toolUse) throw new Error('Vision analysis did not return structured data.');
+  return toolUse.input;
+}
+
+// ====== STAGE 2: WEB SEARCH + EXTRACTION ======
+async function searchAndExtract(analysis, refinement) {
+  logStep('Building targeted search strategy...');
+
+  // Region → state list mapping for explicit prompt guidance
+  const REGION_STATES = {
+    'East Coast': 'New York, New Jersey, Pennsylvania, Massachusetts, Connecticut, Rhode Island, Maine, New Hampshire, Vermont, Delaware, Maryland, DC, Virginia, North Carolina, South Carolina, Georgia, Florida',
+    'West Coast': 'California, Oregon, Washington, Alaska, Hawaii',
+    'South': 'Texas, Oklahoma, Arkansas, Louisiana, Mississippi, Alabama, Tennessee, Kentucky',
+    'North': 'Michigan, Minnesota, Wisconsin, North Dakota, South Dakota, Montana, Idaho, Wyoming',
+    'Central': 'Nebraska, Kansas, Missouri, Iowa, Illinois, Indiana, Ohio, Colorado, New Mexico, Arizona, Utah, Nevada',
+  };
+
+  const refineParts = [];
+  if (refinement.region) {
+    refineParts.push(`Only consider distributors located in the US ${refinement.region} region (states: ${REGION_STATES[refinement.region]}).`);
+  } else if (refinement.receivingZip) {
+    refineParts.push(`Prioritize distributors close to receiving ZIP ${refinement.receivingZip} for lower shipping cost.`);
+  }
+  if (refinement.quantity && refinement.quantity !== 'More' && parseInt(refinement.quantity) >= 5) {
+    refineParts.push(`Quantity needed: ${refinement.quantity} slabs — prefer suppliers known to stock in bulk.`);
+  } else if (refinement.quantity === 'More') {
+    refineParts.push(`Large order (20+ slabs) — prefer wholesale distributors and importers.`);
+  }
+  if (refinement.thickness) refineParts.push(`Prefer thickness: ${refinement.thickness}.`);
+  if (refinement.finish) refineParts.push(`Prefer finish: ${refinement.finish}.`);
+  if (refinement.notes) refineParts.push(`Notes: ${refinement.notes}.`);
+  const refineText = refineParts.length ? refineParts.join(' ') : '';
+
+  const primaryName = analysis.candidate_names[0] || analysis.stone_category;
+  // Radically simple — we extract URLs from search blocks ourselves, so the
+  // model just needs to do 1-2 searches and list a few suppliers briefly.
+  const researchPrompt = `Use web_search to find US distributors carrying "${primaryName}" or similar ${analysis.stone_category}. US-only — no international suppliers. ${refineText}
+
+After searching, briefly list each distributor (name + US city/state + one short note). Keep your output concise — under 300 words total.`;
+
+  const knowledgePrompt = `List 4-6 natural stone distributors LOCATED IN THE UNITED STATES that commonly carry "${primaryName}" or visually similar ${analysis.base_color} ${analysis.stone_category} with ${analysis.veining_pattern} veining. Do NOT include any international suppliers. ${refineText}
+
+For each, give: company name and US city/state of main warehouse. DO NOT INCLUDE URLs (no web search was performed in this fallback path — we don't want made-up URLs). Use only your training knowledge for company names and locations.`;
+
+  const matchTool = {
+    name: 'record_matched_slabs',
+    description: 'Record the slabs found that visually match the reference image.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        search_summary: { type: 'string', description: 'Brief summary of the search approach and what was found overall.' },
+        matches: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              slab_name: { type: 'string', description: 'Commercial name of the slab.' },
+              supplier: { type: 'string', description: 'Distributor or supplier company name.' },
+              supplier_location: { type: 'string', description: 'City and state of the supplier or warehouse.' },
+              dimensions: { type: 'string', description: 'Slab dimensions (e.g. "126 x 63 in") or "Not specified".' },
+              thickness: { type: 'string', description: 'Thickness (e.g. "3cm" or "2cm") or "Not specified".' },
+              finish: { type: 'string', description: 'Finish (polished, honed, leathered, etc.) or "Not specified".' },
+              price: { type: 'string', description: 'Price per sqft, per slab, or "Contact supplier".' },
+              product_url: { type: 'string', description: 'Direct URL to the product page if found.' },
+              image_url: { type: 'string', description: 'URL to a product image if found.' },
+              similarity_score: { type: 'number', description: 'How visually similar to the reference, 0-100.' },
+              similarity_reasoning: { type: 'string', description: "One sentence on why this is or isn't a strong visual match." },
+            },
+            required: ['slab_name', 'supplier', 'similarity_score', 'similarity_reasoning'],
+          },
+        },
+      },
+      required: ['search_summary', 'matches'],
+    },
+  };
+
+  const webSearchTool = { type: 'web_search_20260209', name: 'web_search', max_uses: 2 };
+
+  // Heartbeat so the log doesn't look frozen
+  const heartbeatStart = Date.now();
+  const heartbeat = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - heartbeatStart) / 1000);
+    logStep(`Still working... ${elapsed}s elapsed`, 'info');
+  }, 15000);
+
+  // Hard timeout for the whole pipeline — 240s (research up to 120s + extract + buffer)
+  currentAbortController = new AbortController();
+  const signal = currentAbortController.signal;
+  let abortReason = null;
+  signal.addEventListener('abort', () => { abortReason = signal.reason || 'aborted'; });
+  const hardTimeout = setTimeout(() => abortCurrentRequest('hard_timeout_240s'), 240000);
+
+  try {
+    // === STAGE 2A: RESEARCH ===
+    // Try web search first with a TIGHT budget (75s). If it doesn't return in
+    // time, fall back to a knowledge-only call (no tools) which is always fast.
+    let findings = '';
+    let usedFallback = false;
+    // URLs extracted directly from web_search results — guaranteed real
+    const verifiedUrls = [];
+
+    logStep('Stage 2a — Researching with web search (120s budget)...', 'info');
+
+    const researchAbortController = new AbortController();
+    const researchTimeout = setTimeout(() => researchAbortController.abort('research_timeout_120s'), 120000);
+
+    try {
+      const researchResult = await callClaude(
+        [{ role: 'user', content: researchPrompt }],
+        [webSearchTool],
+        'You are a stone sourcing research agent. Use web_search briefly (max 2 queries), then write a short list of suppliers found.',
+        researchAbortController.signal,
+        1500
+      );
+
+      // Diagnostic: log every content block type so we see what came back
+      const blockTypes = researchResult.content.map(c => c.type);
+      console.log('[RESEARCH] Full response:', researchResult);
+      console.log('[RESEARCH] Block types:', blockTypes);
+      logStep(`  → Response blocks: ${blockTypes.join(', ')}`, 'info');
+
+      const searchUses = researchResult.content.filter(c => c.type === 'server_tool_use' && c.name === 'web_search');
+      logStep(`Web research done: ${searchUses.length} search${searchUses.length === 1 ? '' : 'es'} ran`, 'success');
+      searchUses.forEach(s => logStep(`  → searched: "${s.input?.query || '(unknown)'}"`));
+
+      // Programmatically extract every URL from the web_search results.
+      // These are guaranteed-real URLs (they came from search, not from the model).
+      researchResult.content
+        .filter(c => c.type === 'web_search_tool_result')
+        .forEach(r => {
+          console.log('[RESEARCH] web_search_tool_result block:', r);
+          if (Array.isArray(r.content)) {
+            r.content.forEach(item => {
+              console.log('[RESEARCH] result item:', item);
+              if (item && item.type === 'web_search_result' && item.url) {
+                verifiedUrls.push({ url: item.url, title: item.title || '' });
+              }
+            });
+          } else {
+            logStep(`  → web_search_tool_result content is NOT an array: ${typeof r.content}`, 'warn');
+            console.log('[RESEARCH] Non-array content:', r.content);
+          }
+        });
+      logStep(`  → ${verifiedUrls.length} URL${verifiedUrls.length === 1 ? '' : 's'} captured from search results`, 'success');
+      if (verifiedUrls.length > 0) {
+        verifiedUrls.slice(0, 5).forEach(u => logStep(`     · ${u.url}`));
+      }
+
+      findings = researchResult.content
+        .filter(c => c.type === 'text')
+        .map(c => c.text)
+        .join('\n\n');
+    } catch (err) {
+      if (err.name === 'AbortError' || researchAbortController.signal.aborted) {
+        logStep('Web search exceeded 120s. Falling back to training-knowledge supplier recommendations...', 'warn');
+        usedFallback = true;
+      } else {
+        clearTimeout(researchTimeout);
+        throw err;
+      }
+    }
+    clearTimeout(researchTimeout);
+
+    // Fallback: pure knowledge call, no tools, no web search. Always fast.
+    if (!findings.trim() || usedFallback) {
+      logStep('Generating supplier recommendations from training knowledge (~10–20s)...', 'info');
+      const knowledgeResult = await callClaude(
+        [{ role: 'user', content: knowledgePrompt }],
+        null,
+        'You are a stone industry expert. Recommend US distributors known to carry the requested stone type, using your training knowledge. Be specific about company names and locations.',
+        signal,
+        1500
+      );
+      findings = knowledgeResult.content
+        .filter(c => c.type === 'text')
+        .map(c => c.text)
+        .join('\n\n');
+      logStep(`Knowledge-based recommendations generated.`, 'success');
+    }
+
+    if (!findings.trim()) {
+      return { search_summary: 'No findings produced.', matches: [] };
+    }
+
+    logStep(`Findings ready: ${findings.length} characters`, 'info');
+
+    // === STAGE 2B: EXTRACT (structured output from text) ===
+    logStep('Stage 2b — Extracting structured matches from findings (~5–15s)...', 'info');
+
+    const verifiedUrlBlock = verifiedUrls.length
+      ? `\nVERIFIED URLS FROM WEB SEARCH (these are the real URLs the search returned — assign one to each match's product_url whenever the URL's domain matches the supplier's name):\n${verifiedUrls.map(u => `- ${u.url}${u.title ? ' — "' + u.title + '"' : ''}`).join('\n')}\n`
+      : '';
+
+    const extractPrompt = `Below is a research report on stone slabs found at US distributors that may visually match a reference slab. Extract every individual slab match mentioned in the report into structured form.
+
+REFERENCE VISUAL PROFILE:
+${analysis.visual_summary}
+
+RESEARCH REPORT:
+${findings}
+${verifiedUrlBlock}
+Call record_matched_slabs with all matches you can extract from the report. Set similarity_score (0-100) for each based on how well each matches the reference profile.
+
+URL ASSIGNMENT (CRITICAL):
+- For each match, look at the supplier name. Match it to the VERIFIED URLS list above by domain (e.g. "MSI Surfaces" matches msisurfaces.com; "Arizona Tile" matches arizonatile.com; "Cosmos Surfaces" matches cosmosgranite.com; etc.).
+- When you find a matching URL, set product_url to that exact URL string. The user needs clickable working links.
+- If no verified URL matches a particular supplier, leave product_url empty for that match (do NOT invent one).
+- It is OK if multiple matches end up sharing the same supplier_url — that means they came from the same source page.
+
+If the report mentions no matches, return an empty matches array with a search_summary explaining why.`;
+
+    let extractResult;
+    try {
+      extractResult = await callClaude(
+        [{ role: 'user', content: extractPrompt }],
+        [matchTool],
+        'You extract structured slab match data from research reports. You do not search — you only parse the given report into the structured tool call.',
+        signal,
+        3000
+      );
+    } catch (err) {
+      if (err.name === 'AbortError' || signal.aborted) {
+        throw new Error(`Extract call aborted: ${abortReason || 'unknown reason'}.`);
+      }
+      throw err;
+    }
+
+    const matchToolUse = extractResult.content.find(c => c.type === 'tool_use' && c.name === 'record_matched_slabs');
+    if (matchToolUse) {
+      const result = matchToolUse.input;
+      const n = result?.matches?.length ?? 0;
+
+      // Diagnostic: how many matches got URLs from the model?
+      const modelUrlCount = (result.matches || []).filter(m => isValidUrl(m.product_url)).length;
+      logStep(`Extraction complete: ${n} matches, ${modelUrlCount} with URLs from model.`, 'info');
+
+      // BACKUP — programmatically attach URLs to matches by domain matching
+      // against the verifiedUrls list. This catches cases where the model
+      // failed to include URLs even though we gave them in the prompt.
+      if (verifiedUrls.length > 0 && result.matches) {
+        let backupAssigned = 0;
+        result.matches.forEach(m => {
+          if (isValidUrl(m.product_url)) return; // already has a real URL
+          const supplier = (m.supplier || '').toLowerCase();
+          if (!supplier) return;
+          // Build a list of meaningful supplier words (>3 chars, drop common ones)
+          const stopwords = new Set(['the','and','inc','llc','ltd','company','co','corp','group','surfaces','stone','tile','marble','granite','natural','international']);
+          const supplierWords = supplier
+            .split(/[\s,.&/\\\-()]+/)
+            .filter(w => w.length > 3 && !stopwords.has(w));
+          if (supplierWords.length === 0) return;
+          // Find a verified URL whose hostname contains any of those words
+          const matched = verifiedUrls.find(u => {
+            try {
+              const host = new URL(u.url).hostname.toLowerCase();
+              return supplierWords.some(w => host.includes(w));
+            } catch { return false; }
+          });
+          if (matched) {
+            m.product_url = matched.url;
+            backupAssigned++;
+          }
+        });
+        if (backupAssigned > 0) {
+          logStep(`URL backup attached ${backupAssigned} additional link${backupAssigned === 1 ? '' : 's'} by domain match.`, 'success');
+        }
+      }
+
+      const finalUrlCount = (result.matches || []).filter(m => isValidUrl(m.product_url)).length;
+      logStep(`Final: ${finalUrlCount} of ${n} matches have working links.`, 'success');
+
+      return result;
+    }
+
+    // Final fallback — extraction model didn't use the tool
+    const extractText = extractResult.content.find(c => c.type === 'text')?.text || '';
+    logStep('Extraction did not produce structured output; falling back to text summary.', 'warn');
+    return {
+      search_summary: extractText || 'Could not extract structured matches from research report.',
+      matches: [],
+    };
+  } finally {
+    clearInterval(heartbeat);
+    clearTimeout(hardTimeout);
+    currentAbortController = null;
+  }
+}
+
+// ====== RENDER ANALYSIS ======
+function renderAnalysis(analysis) {
+  $('analysisCard').innerHTML = `
+    <div>
+      <img src="${previewImg.src}" class="w-full rounded shadow-sm" />
+    </div>
+    <div class="md:col-span-2 space-y-3">
+      <p class="text-stone-700 italic">${escapeHTML(analysis.visual_summary)}</p>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm pt-2">
+        ${specRow('Stone type', analysis.stone_category)}
+        ${specRow('Base color', analysis.base_color)}
+        ${specRow('Veining', analysis.veining_pattern)}
+        ${specRow('Movement', analysis.movement_level)}
+        ${specRow('Contrast', analysis.contrast_level)}
+        ${specRow('Likely finish', analysis.likely_finish)}
+      </div>
+      <div class="pt-3">
+        <div class="text-xs uppercase tracking-wider text-stone-500 mb-2">Candidate slab names</div>
+        <div class="flex flex-wrap gap-2">
+          ${(analysis.candidate_names || []).map(n => `<span class="bg-stone-100 px-3 py-1 rounded-full text-sm">${escapeHTML(n)}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  $('analysisSection').classList.remove('hidden');
+}
+
+function specRow(label, value) {
+  return `<div class="flex justify-between border-b border-stone-100 pb-1">
+    <span class="text-stone-500">${label}</span>
+    <span class="text-stone-900 font-medium">${escapeHTML(value || '—')}</span>
+  </div>`;
+}
+
+// ====== RENDER RESULTS ======
+function renderResults(data) {
+  $('resultsCount').textContent = `${data.matches.length} match${data.matches.length === 1 ? '' : 'es'}`;
+  // Sort by similarity score descending
+  const sorted = [...data.matches].sort((a, b) => (b.similarity_score || 0) - (a.similarity_score || 0));
+  $('resultsGrid').innerHTML = sorted.map(m => renderCard(m)).join('');
+  $('resultsSection').classList.remove('hidden');
+
+  if (data.matches.length === 0) {
+    $('resultsGrid').innerHTML = `<div class="md:col-span-2 bg-amber-50 border border-amber-200 rounded p-6 text-amber-900">
+      <p class="font-medium mb-2">No strong matches found in this pass.</p>
+      <p class="text-sm">${escapeHTML(data.search_summary || '')}</p>
+      <p class="text-sm mt-3">Try uploading a clearer photo, adjusting the refinement filters, or running again — agent searches are not deterministic.</p>
+    </div>`;
+  }
+}
+
+function isValidUrl(s) {
+  if (!s || typeof s !== 'string') return false;
+  const trimmed = s.trim();
+  if (!/^https?:\/\//i.test(trimmed)) return false;
+  // Reject obvious non-URLs the model might emit
+  const bad = ['n/a', 'not available', 'unknown', 'not specified', 'contact supplier', 'example.com'];
+  const low = trimmed.toLowerCase();
+  if (bad.some(b => low.includes(b))) return false;
+  try { new URL(trimmed); return true; } catch { return false; }
+}
+
+function renderCard(m) {
+  const score = Math.max(0, Math.min(100, m.similarity_score || 0));
+  const validUrl = isValidUrl(m.product_url);
+  const validImg = isValidUrl(m.image_url);
+  // Only show image if URL is real; no placeholder otherwise.
+  const imageHTML = validImg
+    ? `<img src="${escapeAttr(m.image_url)}" onerror="this.parentElement.remove()" class="w-full h-56 object-cover" />`
+    : '';
+  const linkHTML = validUrl
+    ? `<a href="${escapeAttr(m.product_url)}" target="_blank" rel="noopener" class="inline-block mt-3 text-sm text-stone-900 underline hover:no-underline">Open supplier page →</a>`
+    : '';
+  const imageWrapper = imageHTML ? `<div class="relative">${imageHTML}</div>` : '';
+  return `
+    <div class="stone-card rounded-lg overflow-hidden">
+      ${imageWrapper}
+      <div class="p-5">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h4 class="serif text-xl font-semibold leading-tight">${escapeHTML(m.slab_name)}</h4>
+            <p class="text-sm text-stone-600 mt-1">${escapeHTML(m.supplier)}${m.supplier_location ? ` · ${escapeHTML(m.supplier_location)}` : ''}</p>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-xs uppercase tracking-wider text-stone-500">Match</div>
+            <div class="font-semibold text-lg">${score}%</div>
+          </div>
+        </div>
+        <div class="similarity-bar h-1 rounded mb-4" style="--score: ${score}%"></div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm mb-3">
+          ${m.dimensions ? specRow('Size', m.dimensions) : ''}
+          ${m.thickness ? specRow('Thickness', m.thickness) : ''}
+          ${m.finish ? specRow('Finish', m.finish) : ''}
+          ${m.price ? specRow('Price', m.price) : ''}
+        </div>
+        <p class="text-sm text-stone-600 italic">${escapeHTML(m.similarity_reasoning || '')}</p>
+        ${linkHTML}
+      </div>
+    </div>
+  `;
+}
+
+function escapeHTML(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(s) { return escapeHTML(s); }
+
+// ====== MAIN FLOW ======
+searchBtn.onclick = async () => {
+  if (!state.apiKey) { $('settingsBtn').click(); return; }
+  if (!state.imageBase64) return;
+
+  // Reset UI
+  $('workingSection').classList.remove('hidden');
+  $('analysisSection').classList.add('hidden');
+  $('resultsSection').classList.add('hidden');
+  $('errorSection').classList.add('hidden');
+  $('agentLog').innerHTML = '';
+  searchBtn.disabled = true;
+  $('stopBtn').classList.remove('hidden');
+  startTimer('Agent working...');
+
+  // Fresh search — clear any old data so email button can't pick up stale results
+  state.lastSearch = {};
+
+  try {
+    // Stage 1
+    const analysis = await analyzeImage();
+    state.lastSearch = state.lastSearch || {};
+    state.lastSearch.analysis = analysis;
+    logStep(`Identified as ${analysis.stone_category} — likely ${analysis.candidate_names.slice(0,2).join(' or ')}`, 'success');
+    renderAnalysis(analysis);
+
+    // Stage 2
+    const refinement = {
+      // Client info
+      clientName: $('clientNameInput').value.trim(),
+      clientEmail: $('clientEmailInput').value.trim(),
+      clientPhone: $('clientPhoneInput').value.trim(),
+      clientAddress: $('clientAddressInput').value.trim(),
+      clientType: $('clientTypeInput').value,
+      // Search criteria
+      region: $('regionInput').value,
+      quantity: $('quantityInput').value,
+      dateNeeded: $('dateNeededInput').value,
+      receivingZip: $('receivingZipInput').value.trim(),
+      thickness: $('thicknessInput').value,
+      finish: $('finishInput').value,
+      notes: $('notesInput').value.trim(),
+    };
+    // Stash criteria for the email button (preserve any analysis already set)
+    state.lastSearch = state.lastSearch || {};
+    state.lastSearch.refinement = refinement;
+    const results = await searchAndExtract(analysis, refinement);
+    state.lastSearch.results = results;
+    logStep(`Done. ${results.matches.length} matches returned.`, 'success');
+    renderResults(results);
+
+  } catch (err) {
+    console.error(err);
+    logStep(`Error: ${err.message}`, 'warn');
+    $('errorMessage').textContent = err.message;
+    $('errorSection').classList.remove('hidden');
+  } finally {
+    stopTimer();
+    $('stopBtn').classList.add('hidden');
+    searchBtn.disabled = false;
+    searchBtn.textContent = 'Find matching slabs';
+    updateSearchButton();
+  }
+};
+
+$('stopBtn').onclick = () => {
+  abortCurrentRequest('user_cancel');
+  logStep('Stop requested by user.', 'warn');
+};
+
+// ====== EMAIL REPORT (mailto) ======
+function buildEmailBody(analysis, refinement, results) {
+  const date = new Date().toLocaleString('en-US');
+  const lines = [];
+  lines.push(`Slab Match Inquiry — generated ${date}`);
+  lines.push('='.repeat(60));
+  lines.push('');
+  lines.push('=== CLIENT INFO ===');
+  if (refinement.clientName) lines.push(`Name: ${refinement.clientName}`);
+  if (refinement.clientEmail) lines.push(`Email: ${refinement.clientEmail}`);
+  if (refinement.clientPhone) lines.push(`Phone: ${refinement.clientPhone}`);
+  if (refinement.clientAddress) lines.push(`Address: ${refinement.clientAddress}`);
+  if (refinement.clientType) lines.push(`Client type: ${refinement.clientType}`);
+  if (!refinement.clientName && !refinement.clientEmail && !refinement.clientPhone) {
+    lines.push('(No client info provided.)');
+  }
+  lines.push('');
+  lines.push('=== VISUAL ANALYSIS ===');
+  if (analysis) {
+    lines.push(analysis.visual_summary || '');
+    lines.push(`Stone type: ${analysis.stone_category || '—'}`);
+    lines.push(`Base color: ${analysis.base_color || '—'}`);
+    lines.push(`Veining: ${analysis.veining_pattern || '—'}`);
+    lines.push(`Movement: ${analysis.movement_level || '—'}`);
+    lines.push(`Likely finish: ${analysis.likely_finish || '—'}`);
+    lines.push(`Candidate names: ${(analysis.candidate_names || []).join(', ')}`);
+  }
+  lines.push('');
+  lines.push('=== INQUIRY DETAILS ===');
+  if (refinement.region) lines.push(`Region: ${refinement.region}`);
+  if (refinement.quantity) lines.push(`Quantity: ${refinement.quantity}`);
+  if (refinement.dateNeeded) lines.push(`Latest date of need: ${refinement.dateNeeded}`);
+  if (refinement.receivingZip) lines.push(`Receiving ZIP: ${refinement.receivingZip}`);
+  if (refinement.thickness) lines.push(`Thickness: ${refinement.thickness}`);
+  if (refinement.finish) lines.push(`Finish: ${refinement.finish}`);
+  if (refinement.notes) lines.push(`Notes: ${refinement.notes}`);
+  lines.push('');
+  lines.push('=== MATCHES FOUND ===');
+  if (results && results.matches && results.matches.length) {
+    const sorted = [...results.matches].sort((a, b) => (b.similarity_score || 0) - (a.similarity_score || 0));
+    sorted.forEach((m, i) => {
+      lines.push('');
+      lines.push(`${i + 1}. ${m.slab_name || 'Unnamed'}  —  ${m.similarity_score || 0}% match`);
+      lines.push(`   Supplier: ${m.supplier || '—'}${m.supplier_location ? ' · ' + m.supplier_location : ''}`);
+      if (m.dimensions) lines.push(`   Size: ${m.dimensions}`);
+      if (m.thickness) lines.push(`   Thickness: ${m.thickness}`);
+      if (m.finish) lines.push(`   Finish: ${m.finish}`);
+      if (m.price) lines.push(`   Price: ${m.price}`);
+      if (m.product_url) lines.push(`   Supplier page: ${m.product_url}`);
+      if (m.image_url) lines.push(`   Image URL: ${m.image_url}`);
+      if (m.similarity_reasoning) lines.push(`   Note: ${m.similarity_reasoning}`);
+    });
+  } else {
+    lines.push('(No matches returned this search.)');
+  }
+  lines.push('');
+  lines.push('-'.repeat(60));
+  lines.push('REMINDER: attach the reference slab photo manually before sending.');
+  lines.push('(Email links cannot carry attachments, so the original photo lives on your computer.)');
+  return lines.join('\n');
+}
+
+// Trigger a download of the reference photo so it lands in the user's
+// Downloads folder. mailto: can't carry attachments, so the next best
+// thing is to make the photo trivially available to drag into the email.
+function downloadReferencePhoto() {
+  if (!state.imageFile) return false;
+  try {
+    const url = URL.createObjectURL(state.imageFile);
+    const a = document.createElement('a');
+    a.href = url;
+    const ext = (state.imageFile.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.download = `slab-reference-${stamp}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    return true;
+  } catch (e) {
+    console.error('Photo download failed:', e);
+    return false;
+  }
+}
+
+$('emailBtn').onclick = () => {
+  const s = state.lastSearch;
+  if (!s || !s.analysis || !s.results) {
+    alert('Run a search first.');
+    return;
+  }
+  // Step 1: download the reference photo so the user can attach it
+  const downloaded = downloadReferencePhoto();
+
+  // Step 2: open the email draft
+  const clientTag = s.refinement?.clientName ? ` — ${s.refinement.clientName}` : '';
+  const subject = `Slab Match Inquiry${clientTag} — ${(s.analysis.candidate_names || ['stone'])[0]} — ${new Date().toLocaleDateString('en-US')}`;
+  const body = buildEmailBody(s.analysis, s.refinement || {}, s.results);
+  const url = `mailto:kourosh@fatemiandco.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // Some browsers cap mailto URL length; trim body if needed
+  if (url.length > 12000) {
+    const shortBody = body.substring(0, 8000) + '\n\n[Body truncated — too long for mailto. Open the agent to see full report.]';
+    window.location.href = `mailto:kourosh@fatemiandco.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
+  } else {
+    window.location.href = url;
+  }
+
+  // Step 3: show a brief on-screen reminder
+  if (downloaded) {
+    const hint = document.getElementById('emailHint');
+    if (hint) {
+      hint.textContent = 'Reference photo just downloaded — drag it into the email from your Downloads folder.';
+      hint.classList.remove('hidden');
+      setTimeout(() => hint.classList.add('hidden'), 12000);
+    }
+  }
+};
+
+$('retryBtn').onclick = () => searchBtn.click();
+
+</script>
+</body>
+</html>

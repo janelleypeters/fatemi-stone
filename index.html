@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fatemi Stone | Identify, Select &amp; Protect Natural Stone</title>
+<meta name="description" content="Fatemi Stone helps designers, builders, and homeowners identify natural stone from a photo, find similar stone available in their region, get expert selection consulting, and protect their surfaces.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf8f5;
+    --bg-2:#f1ece4;
+    --ink:#1a1a1a;
+    --ink-soft:#4a463f;
+    --line:#e3dbcf;
+    --bronze:#8a6d3b;
+    --bronze-dk:#6f5630;
+    --white:#ffffff;
+    --radius:2px;
+    --max:1200px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Jost',sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.65;
+    font-weight:300;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Cormorant Garamond',serif;font-weight:600;line-height:1.1;letter-spacing:.01em}
+  .serif{font-family:'Cormorant Garamond',serif}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 28px}
+  .eyebrow{font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;color:var(--bronze);font-weight:500}
+  .btn{
+    display:inline-block;font-family:'Jost',sans-serif;font-weight:400;
+    letter-spacing:.16em;text-transform:uppercase;font-size:.74rem;
+    padding:15px 34px;border:1px solid var(--ink);background:var(--ink);color:#fff;
+    cursor:pointer;transition:.25s;border-radius:var(--radius)
+  }
+  .btn:hover{background:transparent;color:var(--ink)}
+  .btn-outline{background:transparent;color:var(--ink)}
+  .btn-outline:hover{background:var(--ink);color:#fff}
+  .btn-bronze{background:var(--bronze);border-color:var(--bronze)}
+  .btn-bronze:hover{background:transparent;color:var(--bronze)}
+
+  /* HEADER */
+  header{position:sticky;top:0;z-index:50;background:rgba(250,248,245,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;letter-spacing:.04em}
+  .logo span{color:var(--bronze)}
+  .nav ul{display:flex;gap:34px;list-style:none}
+  .nav ul a{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:400;transition:.2s;position:relative}
+  .nav ul a:hover{color:var(--bronze)}
+  .nav-cta{display:flex;align-items:center;gap:20px}
+  .menu-toggle{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer}
+
+  /* HERO */
+  .hero{position:relative;min-height:88vh;display:flex;align-items:center;
+    background:linear-gradient(rgba(20,18,15,.55),rgba(20,18,15,.55)),
+      radial-gradient(circle at 20% 30%,#5b5048,#2b2723 60%,#1a1714);
+    color:#fff;overflow:hidden}
+  .hero::after{content:"";position:absolute;inset:0;opacity:.18;mix-blend-mode:overlay;
+    background-image:radial-gradient(circle at 70% 20%,#d8c9b0 0,transparent 40%),
+      radial-gradient(circle at 30% 80%,#a08a6a 0,transparent 45%)}
+  .hero .wrap{position:relative;z-index:2;padding-top:60px;padding-bottom:60px}
+  .hero h1{font-size:clamp(2.6rem,6vw,5rem);font-weight:600;max-width:14ch;margin:18px 0 22px}
+  .hero p{font-weight:300;font-size:1.1rem;max-width:48ch;color:#f0e9df;margin-bottom:34px}
+  .hero .btn-row{display:flex;gap:16px;flex-wrap:wrap}
+  .hero .btn{border-color:#fff;background:#fff;color:var(--ink)}
+  .hero .btn:hover{background:transparent;color:#fff}
+  .hero .btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+  .hero .btn-outline:hover{background:#fff;color:var(--ink)}
+
+  /* SECTION */
+  section{padding:96px 0}
+  .sec-head{text-align:center;max-width:60ch;margin:0 auto 56px}
+  .sec-head h2{font-size:clamp(2rem,4vw,3rem);margin:10px 0 14px}
+  .sec-head p{color:var(--ink-soft)}
+
+  /* SERVICES */
+  .services{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--line)}
+  .svc{padding:44px 38px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transition:.3s;position:relative}
+  .svc:nth-child(2n){border-right:none}
+  .svc:nth-last-child(-n+2){border-bottom:none}
+  .svc:hover{background:var(--bg-2)}
+  .svc .num{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:var(--bronze);font-weight:500}
+  .svc h3{font-size:1.7rem;margin:8px 0 12px}
+  .svc p{color:var(--ink-soft);font-size:.95rem;margin-bottom:20px}
+  .svc .lnk{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);font-weight:500;border-bottom:1px solid var(--bronze);padding-bottom:3px}
+
+  /* SEARCH FOR STONE */
+  #search{background:var(--bg-2)}
+  .finder{display:grid;grid-template-columns:340px 1fr;gap:40px;align-items:start}
+  .finder-panel{background:#fff;border:1px solid var(--line);padding:30px;border-radius:var(--radius);position:sticky;top:96px}
+  .drop{border:1.5px dashed var(--bronze);border-radius:var(--radius);padding:30px 18px;text-align:center;cursor:pointer;transition:.25s;background:var(--bg)}
+  .drop:hover,.drop.drag{background:var(--bg-2);border-color:var(--bronze-dk)}
+  .drop .ic{font-size:2rem}
+  .drop p{font-size:.85rem;color:var(--ink-soft);margin-top:8px}
+  .preview{margin-top:16px;display:none}
+  .preview img{width:100%;height:150px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--line)}
+  .swatch-row{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.82rem;color:var(--ink-soft)}
+  .swatch{width:30px;height:30px;border-radius:50%;border:1px solid var(--line)}
+  .field{margin-top:18px}
+  .field label{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+  .field select,.field input{width:100%;padding:11px 12px;border:1px solid var(--line);background:#fff;font-family:inherit;font-size:.9rem;border-radius:var(--radius)}
+  .note{font-size:.72rem;color:var(--ink-soft);margin-top:18px;line-height:1.5;border-top:1px solid var(--line);padding-top:14px}
+  .results{min-height:300px}
+  .results-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+  .results-meta h3{font-size:1.5rem}
+  .results-meta span{font-size:.82rem;color:var(--ink-soft)}
+  .stone-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:.25s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(40,30,15,.12)}
+  .card .sw{height:120px;position:relative}
+  .card .match{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);font-size:.64rem;letter-spacing:.08em;padding:3px 8px;border-radius:20px;color:var(--bronze-dk);font-weight:500}
+  .card .body{padding:14px 16px}
+  .card h4{font-size:1.25rem}
+  .card .meta{font-size:.76rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+  .tag{display:inline-block;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;background:var(--bg-2);border:1px solid var(--line);padding:3px 9px;border-radius:20px;margin-top:10px;color:var(--ink-soft)}
+  .empty{text-align:center;padding:60px 20px;color:var(--ink-soft)}
+
+  /* CONSULTANT */
+  #consult{background:#fff}
+  .apps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:42px}
+  .app{border:1px solid var(--line);padding:22px 18px;text-align:center;border-radius:var(--radius);transition:.25s;cursor:default}
+  .app:hover{background:var(--bg-2);border-color:var(--bronze)}
+  .app .ic{font-size:1.5rem}
+  .app h4{font-size:1.2rem;margin-top:8px}
+  .app p{font-size:.78rem;color:var(--ink-soft)}
+  .consult-cta{display:grid;grid-template-columns:1.1fr .9fr;gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .consult-cta .left{padding:44px;background:var(--ink);color:#fff}
+  .consult-cta .left h3{font-size:2.1rem;color:#fff}
+  .consult-cta .left p{color:#cfc7ba;margin:14px 0 0;font-size:.95rem}
+  .consult-cta form{padding:38px;background:var(--bg)}
+  .consult-cta .field{margin-top:0;margin-bottom:14px}
+
+  /* PROTECTION */
+  #protect{background:var(--bg-2)}
+  .prot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .prot{background:#fff;border:1px solid var(--line);padding:32px 28px;border-radius:var(--radius)}
+  .prot .step{font-family:'Cormorant Garamond',serif;color:var(--bronze);font-size:1.6rem;font-weight:500}
+  .prot h4{font-size:1.4rem;margin:6px 0 10px}
+  .prot p{font-size:.9rem;color:var(--ink-soft)}
+  .prot ul{margin:12px 0 0 18px;font-size:.86rem;color:var(--ink-soft)}
+  .prot li{margin-bottom:5px}
+
+  /* FIND A PRO */
+  .pro-filters{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:760px;margin:0 auto 40px}
+  .pro-filters .field{margin-top:0}
+  .pro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .pro{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:24px;transition:.25s}
+  .pro:hover{border-color:var(--bronze);box-shadow:0 10px 26px rgba(40,30,15,.08)}
+  .pro .ptype{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bronze-dk);font-weight:500}
+  .pro h4{font-size:1.4rem;margin:4px 0 2px}
+  .pro .loc{font-size:.84rem;color:var(--ink-soft)}
+  .pro .stars{color:var(--bronze);font-size:.9rem;margin:8px 0 4px;letter-spacing:1px}
+  .pro .rate{font-size:.78rem;color:var(--ink-soft)}
+  .pro .specs{font-size:.8rem;color:var(--ink-soft);margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+  .pro .pcta{display:inline-block;margin-top:14px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);border-bottom:1px solid var(--bronze);padding-bottom:3px}
+
+  /* FOOTER */
+  footer{background:var(--ink);color:#cfc7ba;padding:64px 0 30px}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;padding-bottom:40px;border-bottom:1px solid #3a352e}
+  footer .logo{color:#fff;font-size:1.9rem}
+  footer h5{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:#fff;margin-bottom:16px;font-weight:500;font-family:'Jost',sans-serif}
+  footer ul{list-style:none}
+  footer ul li{margin-bottom:9px;font-size:.88rem}
+  footer a:hover{color:var(--bronze)}
+  .foot-bottom{display:flex;justify-content:space-between;padding-top:22px;font-size:.78rem;flex-wrap:wrap;gap:10px}
+
+  /* MODAL */
+  .modal{position:fixed;inset:0;background:rgba(20,16,12,.6);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.open{display:flex}
+  .modal-box{background:#fff;max-width:680px;width:100%;max-height:90vh;overflow:auto;border-radius:var(--radius)}
+  .modal-sw{height:160px}
+  .modal-body{padding:32px}
+  .modal-body .close{float:right;font-size:1.6rem;cursor:pointer;line-height:1;color:var(--ink-soft);background:none;border:none}
+  .modal-body h3{font-size:2rem}
+  .modal-meta{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;font-size:.85rem}
+  .modal-meta div span{display:block;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bronze);margin-bottom:2px}
+  .similar{margin-top:24px;border-top:1px solid var(--line);padding-top:20px}
+  .similar h4{font-size:1.3rem;margin-bottom:12px}
+  .sim-row{display:flex;gap:12px}
+  .sim{flex:1;text-align:center;cursor:pointer}
+  .sim .sw{height:64px;border-radius:var(--radius);border:1px solid var(--line)}
+  .sim small{display:block;margin-top:6px;font-size:.74rem}
+
+  @media(max-width:900px){
+    .nav ul,.nav-cta .btn{display:none}
+    .menu-toggle{display:block}
+    .nav ul.open{display:flex;position:absolute;top:74px;left:0;right:0;flex-direction:column;background:var(--bg);padding:20px 28px;gap:16px;border-bottom:1px solid var(--line)}
+    .svc-grid,.stone-grid,.prot-grid{grid-template-columns:1fr}
+    .svc{border-right:none;border-bottom:1px solid var(--line)}
+    .finder{grid-template-columns:1fr}
+    .finder-panel{position:static}
+    .apps{grid-template-columns:repeat(2,1fr)}
+    .consult-cta,.foot-grid{grid-template-columns:1fr}
+    .stone-grid,.pro-grid{grid-template-columns:repeat(2,1fr)}
+    .pro-filters{grid-template-columns:1fr}
+  }
+  @media(max-width:560px){.stone-grid,.pro-grid{grid-template-columns:1fr}.apps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#top" class="logo">FATEMI<span>STONE</span></a>
+    <ul id="menu">
+      <li><a href="#search">Find Stone</a></li>
+      <li><a href="#consult">Consultant</a></li>
+      <li><a href="#protect">Protection</a></li>
+      <li><a href="#pros">Find a Pro</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#consult" class="btn btn-bronze">Book a Consultation</a>
+    </div>
+    <button class="menu-toggle" id="mt" aria-label="Toggle menu">&#9776;</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="top" style="padding:0">
+  <div class="wrap">
+    <span class="eyebrow" style="color:#d8c4a0">Timeless Stone &middot; Modern Solutions</span>
+    <h1>Identify, select, and protect natural stone.</h1>
+    <p>Upload a photo to discover any stone&rsquo;s name and origin, find similar slabs available in your region, get expert selection guidance, and learn how to keep it flawless for decades.</p>
+    <div class="btn-row">
+      <a href="#search" class="btn">Find a Stone</a>
+      <a href="#consult" class="btn btn-outline">Talk to a Consultant</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">What We Do</span>
+      <h2>Four ways we work with stone</h2>
+      <p>From first inspiration to lifelong care, Fatemi Stone supports designers, builders, and homeowners at every stage of a natural stone project.</p>
+    </div>
+    <div class="svc-grid">
+      <div class="svc">
+        <div class="num">01</div>
+        <h3>Search for Stone</h3>
+        <p>Upload a photo and our finder identifies the stone &mdash; name, type, and country of origin &mdash; then surfaces similar stones available in your region.</p>
+        <a href="slab-match-agent.html" class="lnk">Try the finder</a>
+      </div>
+      <div class="svc">
+        <div class="num">02</div>
+        <h3>Stone Consultant</h3>
+        <p>Expert guidance on selecting the right stone for your application: flooring, cladding, countertops, vanities, pavers, furniture, mantels, and bath.</p>
+        <a href="#consult" class="lnk">Request consulting</a>
+      </div>
+      <div class="svc">
+        <div class="num">03</div>
+        <h3>Stone Protection</h3>
+        <p>Sealing, cleaning, and maintenance advice tailored to your material so your investment stays beautiful and stain-free for years to come.</p>
+        <a href="#protect" class="lnk">Protect your stone</a>
+      </div>
+      <div class="svc">
+        <div class="num">04</div>
+        <h3>Find a Pro</h3>
+        <p>Locate the best vetted professionals near you &mdash; installers, fabricators, and distributors &mdash; matched to your ZIP code and the kind of work your project needs.</p>
+        <a href="#pros" class="lnk">Find a contractor</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEARCH FOR STONE -->
+<section id="search">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Service 01</span>
+      <h2>Search for Stone</h2>
+      <p>Upload a photo of a stone you love, or filter our catalog by type and region. The finder reads the dominant tones in your image and matches them against our collection.</p>
+    </div>
+    <div class="finder">
+      <div class="finder-panel">
+        <div class="drop" id="drop">
+          <div class="ic">&#128247;</div>
+          <strong style="font-size:.9rem">Upload a stone photo</strong>
+          <p>Drag &amp; drop or click to browse</p>
+          <input type="file" id="file" accept="image/*" hidden>
+        </div>
+        <div class="preview" id="preview">
+          <img id="previewImg" alt="Uploaded stone photo preview">
+          <div class="swatch-row">
+            <span class="swatch" id="swatch"></span>
+            <span id="swatchTxt">Dominant tone detected</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="region">Available in region</label>
+          <select id="region">
+            <option value="">All regions</option>
+            <option>Northeast</option>
+            <option>Southeast</option>
+            <option>Midwest</option>
+            <option>Southwest</option>
+            <option>West Coast</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="type">Stone type</label>
+          <select id="type">
+            <option value="">All types</option>
+            <option>Marble</option>
+            <option>Granite</option>
+            <option>Quartzite</option>
+            <option>Onyx</option>
+            <option>Travertine</option>
+            <option>Limestone</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="q">Search by name or origin</label>
+          <input type="text" id="q" placeholder="e.g. Calacatta, Italy, Brazil">
+        </div>
+        <p class="note"><strong>Demo note:</strong> This finder matches the dominant color of your photo against a sample catalog right in your browser. Production photo-recognition (exact slab identification) connects to an AI vision model on the server &mdash; that&rsquo;s the planned phase&nbsp;2 upgrade.</p>
+      </div>
+
+      <div class="results">
+        <div class="results-meta">
+          <h3 id="resTitle">Our Collection</h3>
+          <span id="resCount"></span>
+        </div>
+        <div class="stone-grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONSULTANT -->
+<section id="consult">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Service 02</span>
+      <h2>Stone Consultant</h2>
+      <p>Choosing the right stone is about more than looks &mdash; durability, porosity, finish, and traffic all matter. Tell us your application and we&rsquo;ll guide the selection.</p>
+    </div>
+    <div class="apps">
+      <div class="app"><div class="ic">&#129521;</div><h4>Flooring</h4><p>Durable, slip-aware selections</p></div>
+      <div class="app"><div class="ic">&#127963;</div><h4>Wall Cladding</h4><p>Interior &amp; facade surfaces</p></div>
+      <div class="app"><div class="ic">&#127869;</div><h4>Countertops</h4><p>Kitchen &amp; bar tops</p></div>
+      <div class="app"><div class="ic">&#128703;</div><h4>Vanities</h4><p>Bath &amp; powder rooms</p></div>
+      <div class="app"><div class="ic">&#129704;</div><h4>Pavers</h4><p>Patios, pool decks, paths</p></div>
+      <div class="app"><div class="ic">&#129681;</div><h4>Furniture</h4><p>Dining, coffee &amp; console tables</p></div>
+      <div class="app"><div class="ic">&#128293;</div><h4>Mantels</h4><p>Fireplace surrounds</p></div>
+      <div class="app"><div class="ic">&#128705;</div><h4>Bathtubs &amp; Basins</h4><p>Sculpted stone bath</p></div>
+    </div>
+    <div class="consult-cta">
+      <div class="left">
+        <h3>Let&rsquo;s create something meaningful.</h3>
+        <p>Share a few details about your project and one of our stone specialists will reach out to discuss material, finish, and sourcing &mdash; typically within one business day.</p>
+        <p style="margin-top:22px;font-size:.85rem;color:#a89c8a">30+ years of global stone expertise &middot; Trusted across North America, Europe &amp; Asia.</p>
+      </div>
+      <form id="consultForm">
+        <div class="field"><label>Name</label><input required type="text" placeholder="Your name"></div>
+        <div class="field"><label>Email</label><input required type="email" placeholder="you@email.com"></div>
+        <div class="field"><label>Phone</label><input type="tel" placeholder="(470) 000-0000"></div>
+        <div class="field">
+          <label>Application</label>
+          <select>
+            <option>Flooring</option><option>Wall Cladding</option><option>Countertops</option>
+            <option>Vanities</option><option>Pavers</option><option>Furniture</option>
+            <option>Mantels</option><option>Bathtubs &amp; Basins</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Tell us about your project</label><input type="text" placeholder="Scope, timeline, location"></div>
+        <button class="btn btn-bronze" type="submit" style="width:100%">Request Consultation</button>
+        <p id="formMsg" style="display:none;color:var(--bronze-dk);font-size:.85rem;margin-top:12px;text-align:center">Thank you &mdash; we&rsquo;ll be in touch within one business day.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- PROTECTION -->
+<section id="protect">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Service 03</span>
+      <h2>Stone Protection</h2>
+      <p>Natural stone rewards a little care. Follow these fundamentals &mdash; or ask us for a product plan matched to your exact material.</p>
+    </div>
+    <div class="prot-grid">
+      <div class="prot">
+        <div class="step">01</div>
+        <h4>Seal</h4>
+        <p>Most porous stones &mdash; marble, limestone, travertine &mdash; benefit from a penetrating sealer that resists staining without changing the look.</p>
+        <ul>
+          <li>Test absorption with the water-drop test</li>
+          <li>Re-seal high-use surfaces every 1&ndash;3 years</li>
+          <li>Granite &amp; quartzite need less frequent sealing</li>
+        </ul>
+      </div>
+      <div class="prot">
+        <div class="step">02</div>
+        <h4>Clean</h4>
+        <p>Use pH-neutral stone cleaners only. Acids in vinegar, citrus, and many household sprays etch calcium-based stone permanently.</p>
+        <ul>
+          <li>Blot spills immediately &mdash; don&rsquo;t wipe</li>
+          <li>Skip vinegar, bleach &amp; abrasive pads</li>
+          <li>Use coasters under wine, oil &amp; citrus</li>
+        </ul>
+      </div>
+      <div class="prot">
+        <div class="step">03</div>
+        <h4>Maintain</h4>
+        <p>Small habits keep stone looking new. For etches or dull spots, professional honing and polishing restores the original finish.</p>
+        <ul>
+          <li>Dust and damp-mop floors regularly</li>
+          <li>Use felt pads under furniture &amp; decor</li>
+          <li>Schedule periodic professional refinishing</li>
+        </ul>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:42px">
+      <a href="#consult" class="btn btn-bronze">Get a protection plan for your stone</a>
+    </div>
+  </div>
+</section>
+
+<!-- FIND A PRO -->
+<section id="pros" style="background:#fff;border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Service 04</span>
+      <h2>Find a Pro Near You</h2>
+      <p>Great stone deserves great hands. Search our network of vetted installers, fabricators, and distributors by location and specialty.</p>
+    </div>
+    <div class="pro-filters">
+      <div class="field"><label for="proZip">ZIP code</label><input type="text" id="proZip" inputmode="numeric" maxlength="5" placeholder="e.g. 30328"></div>
+      <div class="field"><label for="proRegion">Region</label>
+        <select id="proRegion">
+          <option value="">All regions</option>
+          <option>Northeast</option><option>Southeast</option><option>Midwest</option><option>Southwest</option><option>West Coast</option>
+        </select>
+      </div>
+      <div class="field"><label for="proType">Professional type</label>
+        <select id="proType">
+          <option value="">All professionals</option>
+          <option>Installer</option><option>Fabricator</option><option>Distributor</option><option>Restoration</option>
+        </select>
+      </div>
+    </div>
+    <div class="results-meta"><h3 id="proTitle" style="font-size:1.5rem">Network Professionals</h3><span id="proCount"></span></div>
+    <div class="pro-grid" id="proGrid"></div>
+    <p class="note" style="max-width:70ch;margin:26px auto 0;text-align:center">Listings shown are sample directory data for this demo. The production version connects to a live, vetted partner database and uses your ZIP code to rank professionals by true driving proximity.</p>
+  </div>
+</section>
+
+<!-- ABOUT strip -->
+<section id="about" style="background:var(--ink);color:#e9e2d6;text-align:center">
+  <div class="wrap" style="max-width:780px">
+    <span class="eyebrow">About Fatemi Stone</span>
+    <h2 class="serif" style="font-size:clamp(1.8rem,3.5vw,2.6rem);color:#fff;margin:12px 0 18px">Natural stone. Refined artistry.</h2>
+    <p style="color:#cfc7ba">Fatemi Stone is a curated distribution platform for architectural products centered on stone, design innovation, and advanced manufacturing. With over 30 years of global industry leadership, we partner with interior designers, architects, builders, high-end showrooms, and luxury homeowners across North America, Europe, and Asia.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="logo">FATEMI<span style="color:var(--bronze)">STONE</span></div>
+        <p style="max-width:34ch;margin-top:14px;font-size:.9rem">Identify, select, and protect the world&rsquo;s finest natural stone.</p>
+      </div>
+      <div>
+        <h5>Services</h5>
+        <ul>
+          <li><a href="#search">Search for Stone</a></li>
+          <li><a href="#consult">Stone Consultant</a></li>
+          <li><a href="#protect">Stone Protection</a></li>
+          <li><a href="#pros">Find a Pro</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Contact</h5>
+        <ul>
+          <li>227 Sandy Springs Pl, Suite D-426<br>Sandy Springs, GA 30328</li>
+          <li><a href="tel:4707047090">470-704-7090</a></li>
+          <li><a href="mailto:info@fatemistone.com">info@fatemistone.com</a></li>
+          <li><a href="https://www.instagram.com/fatemistone/">Instagram</a> &middot; <a href="https://www.linkedin.com/company/fatemi-stone/">LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>&copy; 2026 Fatemi Stone. All Rights Reserved.</span>
+      <span>Atlanta, Georgia</span>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-sw" id="mSw"></div>
+    <div class="modal-body">
+      <button class="close" id="mClose" aria-label="Close">&times;</button>
+      <h3 id="mName"></h3>
+      <div class="modal-meta">
+        <div><span>Type</span><b id="mType"></b></div>
+        <div><span>Origin</span><b id="mOrigin"></b></div>
+        <div><span>Color family</span><b id="mColor"></b></div>
+        <div><span>Available</span><b id="mRegions"></b></div>
+      </div>
+      <p id="mDesc" style="color:var(--ink-soft);font-size:.95rem"></p>
+      <div class="similar">
+        <h4>Similar stones</h4>
+        <div class="sim-row" id="mSim"></div>
+      </div>
+      <a href="#consult" class="btn btn-bronze" id="mInquire" style="margin-top:22px">Inquire about this stone</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- SAMPLE STONE CATALOG ----------
+   Names, types and origins are real natural stones; hex = representative tone,
+   regions are sample availability for the demo. */
+const CATALOG = [
+  {name:"Carrara",      type:"Marble",     origin:"Italy",   color:"White & Grey", hex:"#e6e4df", regions:["Northeast","Southeast","Midwest","West Coast","Southwest"], desc:"Soft white field with feathery grey veining. The classic, versatile marble for floors, walls and vanities."},
+  {name:"Calacatta",    type:"Marble",     origin:"Italy",   color:"White & Gold", hex:"#efe9dc", regions:["Northeast","Southeast","West Coast"], desc:"Bright white background with bold, dramatic gold and grey veining. A statement stone for countertops and feature walls."},
+  {name:"Statuario",    type:"Marble",     origin:"Italy",   color:"White & Grey", hex:"#eceae4", regions:["Northeast","West Coast"], desc:"Luminous white with crisp, linear grey veins. Prized for sculptural and high-end interior work."},
+  {name:"Nero Marquina",type:"Marble",     origin:"Spain",   color:"Black & White",hex:"#1f1d1c", regions:["Northeast","Southeast","Midwest","West Coast"], desc:"Deep black marble with sharp white veining. Dramatic for floors, cladding and bath surrounds."},
+  {name:"Emperador Dark",type:"Marble",    origin:"Spain",   color:"Brown",        hex:"#5a4636", regions:["Southeast","Midwest","Southwest"], desc:"Rich chocolate-brown marble with light veining. Warm and traditional for floors and fireplaces."},
+  {name:"Crema Marfil", type:"Marble",     origin:"Spain",   color:"Beige & Cream",hex:"#e3d6bd", regions:["Northeast","Southeast","Midwest","Southwest","West Coast"], desc:"Creamy beige with subtle veining. A best-selling neutral for floors, walls and vanities."},
+  {name:"Absolute Black",type:"Granite",   origin:"India",   color:"Black",        hex:"#161616", regions:["Northeast","Southeast","Midwest","Southwest","West Coast"], desc:"Dense, uniform jet-black granite. Extremely durable for kitchen counters and high-traffic floors."},
+  {name:"Black Galaxy", type:"Granite",    origin:"India",   color:"Black & Gold", hex:"#1b1a17", regions:["Southeast","Midwest","West Coast"], desc:"Black granite flecked with golden mineral 'stars'. A dramatic, low-maintenance countertop."},
+  {name:"Kashmir White",type:"Granite",    origin:"India",   color:"White & Grey", hex:"#ddd8ce", regions:["Northeast","Midwest","Southwest"], desc:"Pale grey-white granite with burgundy and grey speckles. Durable and forgiving for busy kitchens."},
+  {name:"Blue Bahia",   type:"Granite",    origin:"Brazil",  color:"Blue",         hex:"#3a5a78", regions:["West Coast","Northeast"], desc:"Vivid blue granite with movement and quartz pockets. A rare statement material."},
+  {name:"Taj Mahal",    type:"Quartzite",  origin:"Brazil",  color:"Beige & Cream",hex:"#e7dcc6", regions:["Northeast","Southeast","West Coast","Southwest"], desc:"Warm creamy quartzite with soft veining. Marble looks with quartzite durability &mdash; ideal for kitchens."},
+  {name:"Mont Blanc",   type:"Quartzite",  origin:"Brazil",  color:"White & Grey", hex:"#e4e2db", regions:["Northeast","Midwest","West Coast"], desc:"White-grey quartzite with linear veining. Etch-resistant alternative to white marble."},
+  {name:"Sea Pearl",    type:"Quartzite",  origin:"Brazil",  color:"Green & Grey", hex:"#9aa39a", regions:["Southeast","West Coast"], desc:"Silvery green-grey quartzite with wavy movement. Durable and distinctive for counters and islands."},
+  {name:"Patagonia",    type:"Quartzite",  origin:"Brazil",  color:"White & Black",hex:"#cfcac2", regions:["West Coast","Northeast"], desc:"Exotic quartzite with bold mineral crystals and dramatic movement. A book-matched showpiece."},
+  {name:"White Onyx",   type:"Onyx",       origin:"Iran",    color:"White & Honey",hex:"#ecdfc6", regions:["West Coast","Northeast"], desc:"Translucent honey-white onyx. Stunning when backlit for bars, vanities and feature walls."},
+  {name:"Green Onyx",   type:"Onyx",       origin:"Pakistan",color:"Green",        hex:"#7d8a5e", regions:["Southeast","West Coast"], desc:"Banded green onyx with luminous depth. A jewel-like accent stone, often backlit."},
+  {name:"Honey Onyx",   type:"Onyx",       origin:"Turkey",  color:"Amber & Honey",hex:"#c79a5b", regions:["Northeast","Southwest"], desc:"Warm amber banding with glowing translucency. Dramatic for backlit panels and tabletops."},
+  {name:"Classico",     type:"Travertine", origin:"Turkey",  color:"Beige & Cream",hex:"#d9c6a8", regions:["Southeast","Midwest","Southwest","West Coast"], desc:"Classic beige travertine. Warm, timeless and ideal for pavers, pool decks and floors."},
+  {name:"Silver",       type:"Travertine", origin:"Turkey",  color:"Grey & Silver",hex:"#b4b1a9", regions:["Northeast","West Coast"], desc:"Cool grey-silver travertine with linear banding. Contemporary look for walls and floors."},
+  {name:"Noce",         type:"Travertine", origin:"Italy",   color:"Brown",        hex:"#7a5e44", regions:["Midwest","Southwest"], desc:"Walnut-brown travertine with rich tone variation. Warm and rustic for floors and exteriors."},
+  {name:"Jura Beige",   type:"Limestone",  origin:"Germany", color:"Beige & Cream",hex:"#d8caac", regions:["Northeast","Midwest"], desc:"Fine beige limestone dotted with fossils. Understated elegance for floors and cladding."},
+  {name:"Moleanos",     type:"Limestone",  origin:"Portugal",color:"Beige & Grey", hex:"#cfc6b4", regions:["Southeast","West Coast"], desc:"Uniform beige-grey limestone. A calm, consistent surface for large floors and facades."},
+  {name:"Blue Stone",   type:"Limestone",  origin:"Belgium", color:"Blue & Grey",  hex:"#5d6168", regions:["Northeast","Southeast"], desc:"Dense blue-grey limestone. Excellent for paving, treads and contemporary exteriors."},
+  {name:"Pietra Grey",  type:"Limestone",  origin:"Iran",    color:"Grey",         hex:"#4a4a4a", regions:["West Coast","Southwest"], desc:"Deep grey limestone with fine white veining. A sophisticated dark neutral for floors and walls."}
+];
+
+/* ---------- helpers ---------- */
+function hexToRgb(h){const n=parseInt(h.slice(1),16);return[n>>16,(n>>8)&255,n&255];}
+function dist(a,b){return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2);}
+let uploadedRgb=null;
+
+const grid=document.getElementById('grid');
+const resCount=document.getElementById('resCount');
+const resTitle=document.getElementById('resTitle');
+
+function swStyle(hex){
+  return `background:linear-gradient(135deg,${hex} 0%,${shade(hex,18)} 45%,${shade(hex,-14)} 100%)`;
+}
+function shade(hex,amt){let[r,g,b]=hexToRgb(hex);
+  r=Math.max(0,Math.min(255,r+amt));g=Math.max(0,Math.min(255,g+amt));b=Math.max(0,Math.min(255,b+amt));
+  return `rgb(${r|0},${g|0},${b|0})`;}
+
+function render(){
+  const region=document.getElementById('region').value;
+  const type=document.getElementById('type').value;
+  const q=document.getElementById('q').value.trim().toLowerCase();
+
+  let list=CATALOG.filter(s=>{
+    if(region && !s.regions.includes(region))return false;
+    if(type && s.type!==type)return false;
+    if(q && !(s.name.toLowerCase().includes(q)||s.origin.toLowerCase().includes(q)||s.type.toLowerCase().includes(q)||s.color.toLowerCase().includes(q)))return false;
+    return true;
+  });
+
+  if(uploadedRgb){
+    list=list.map(s=>({...s,d:dist(hexToRgb(s.hex),uploadedRgb)})).sort((a,b)=>a.d-b.d);
+    resTitle.textContent='Closest Matches to Your Photo';
+  }else{
+    resTitle.textContent=(region||type||q)?'Filtered Results':'Our Collection';
+  }
+
+  resCount.textContent=list.length+' stone'+(list.length!==1?'s':'');
+
+  if(!list.length){grid.innerHTML='<div class="empty">No stones match those filters. Try widening your region or type.</div>';return;}
+
+  grid.innerHTML=list.map((s,i)=>{
+    let badge='';
+    if(uploadedRgb){
+      const score=Math.max(0,Math.round(100-(s.d/4.4)));
+      if(i===0)badge=`<span class="match">Best match &middot; ${score}%</span>`;
+      else if(i<3)badge=`<span class="match">${score}% match</span>`;
+    }
+    return `<div class="card" data-name="${s.name}">
+      <div class="sw" style="${swStyle(s.hex)}">${badge}</div>
+      <div class="body">
+        <h4>${s.name}</h4>
+        <div class="meta">${s.type} &middot; ${s.origin}</div>
+        <span class="tag">${s.color}</span>
+      </div></div>`;
+  }).join('');
+
+  document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openModal(c.dataset.name)));
+}
+
+/* ---------- modal ---------- */
+const modal=document.getElementById('modal');
+function openModal(name){
+  const s=CATALOG.find(x=>x.name===name);if(!s)return;
+  document.getElementById('mSw').style.cssText=swStyle(s.hex);
+  document.getElementById('mName').textContent=s.name;
+  document.getElementById('mType').textContent=s.type;
+  document.getElementById('mOrigin').textContent=s.origin;
+  document.getElementById('mColor').textContent=s.color;
+  document.getElementById('mRegions').textContent=s.regions.length+' regions';
+  document.getElementById('mDesc').innerHTML=s.desc;
+  const sims=CATALOG.filter(x=>x.name!==s.name && (x.type===s.type||x.color===s.color))
+    .sort((a,b)=>dist(hexToRgb(a.hex),hexToRgb(s.hex))-dist(hexToRgb(b.hex),hexToRgb(s.hex))).slice(0,3);
+  document.getElementById('mSim').innerHTML=sims.map(x=>
+    `<div class="sim" data-name="${x.name}"><div class="sw" style="${swStyle(x.hex)}"></div><small>${x.name}</small></div>`).join('');
+  document.querySelectorAll('#mSim .sim').forEach(el=>el.addEventListener('click',()=>openModal(el.dataset.name)));
+  modal.classList.add('open');
+}
+document.getElementById('mClose').addEventListener('click',()=>modal.classList.remove('open'));
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open');});
+
+/* ---------- photo upload + dominant color ---------- */
+const drop=document.getElementById('drop'),file=document.getElementById('file');
+drop.addEventListener('click',()=>file.click());
+['dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+file.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+
+function handleFile(f){
+  const url=URL.createObjectURL(f);
+  const img=document.getElementById('previewImg');
+  img.src=url;
+  document.getElementById('preview').style.display='block';
+  const probe=new Image();
+  probe.onload=()=>{
+    const c=document.createElement('canvas');const S=40;c.width=S;c.height=S;
+    const ctx=c.getContext('2d');ctx.drawImage(probe,0,0,S,S);
+    const d=ctx.getImageData(0,0,S,S).data;
+    let r=0,g=0,b=0,n=0;
+    for(let i=0;i<d.length;i+=4){if(d[i+3]<125)continue;r+=d[i];g+=d[i+1];b+=d[i+2];n++;}
+    uploadedRgb=[r/n,g/n,b/n];
+    const hex='#'+uploadedRgb.map(v=>('0'+Math.round(v).toString(16)).slice(-2)).join('');
+    document.getElementById('swatch').style.background=hex;
+    document.getElementById('swatchTxt').textContent='Dominant tone: '+hex.toUpperCase();
+    render();
+  };
+  probe.src=url;
+}
+
+/* ---------- FIND A PRO directory ---------- */
+const PROS=[
+  {name:"Peachtree Stone Installers",type:"Installer",city:"Atlanta, GA",region:"Southeast",rating:4.9,reviews:212,specs:"Countertops, flooring, large-format cladding",zips:["303","300","301"]},
+  {name:"Marble & Granite Fabricators Co.",type:"Fabricator",city:"Sandy Springs, GA",region:"Southeast",rating:4.8,reviews:158,specs:"CNC fabrication, mitered edges, book-matching",zips:["303","300"]},
+  {name:"Southeast Stone Supply",type:"Distributor",city:"Marietta, GA",region:"Southeast",rating:4.7,reviews:96,specs:"Slab yard, marble, quartzite, travertine",zips:["300","301","303"]},
+  {name:"Empire Surface Restoration",type:"Restoration",city:"Charlotte, NC",region:"Southeast",rating:4.9,reviews:74,specs:"Honing, polishing, etch &amp; stain repair",zips:["282","280"]},
+  {name:"Hudson Valley Stoneworks",type:"Installer",city:"New York, NY",region:"Northeast",rating:4.8,reviews:301,specs:"High-rise installs, bath surrounds, mantels",zips:["100","101","112"]},
+  {name:"Liberty Stone Fabrication",type:"Fabricator",city:"Boston, MA",region:"Northeast",rating:4.7,reviews:142,specs:"Templating, waterjet, custom furniture tops",zips:["021","022"]},
+  {name:"Atlantic Slab Distributors",type:"Distributor",city:"Philadelphia, PA",region:"Northeast",rating:4.6,reviews:88,specs:"Import slabs, onyx, exotic quartzite",zips:["191","190"]},
+  {name:"Great Lakes Stone Co.",type:"Installer",city:"Chicago, IL",region:"Midwest",rating:4.8,reviews:176,specs:"Flooring, pavers, commercial cladding",zips:["606","601"]},
+  {name:"Heartland Fabricators",type:"Fabricator",city:"Minneapolis, MN",region:"Midwest",rating:4.7,reviews:119,specs:"Kitchen tops, vanities, edge profiles",zips:["554","553"]},
+  {name:"Midwest Marble Supply",type:"Distributor",city:"Columbus, OH",region:"Midwest",rating:4.5,reviews:63,specs:"Limestone, travertine, dimensional stone",zips:["432","430"]},
+  {name:"Desert Stone Installers",type:"Installer",city:"Phoenix, AZ",region:"Southwest",rating:4.8,reviews:154,specs:"Pavers, pool decks, outdoor kitchens",zips:["850","852"]},
+  {name:"Lone Star Stone Fabrication",type:"Fabricator",city:"Dallas, TX",region:"Southwest",rating:4.9,reviews:233,specs:"Large slab tops, full-height backsplashes",zips:["752","750"]},
+  {name:"Rio Grande Slab Distributors",type:"Distributor",city:"Austin, TX",region:"Southwest",rating:4.6,reviews:71,specs:"Granite, quartzite, slab yard",zips:["787","733"]},
+  {name:"Pacific Stone Artisans",type:"Installer",city:"Los Angeles, CA",region:"West Coast",rating:4.9,reviews:288,specs:"Luxury residential, backlit onyx, bath",zips:["900","902","913"]},
+  {name:"Golden Gate Fabricators",type:"Fabricator",city:"San Francisco, CA",region:"West Coast",rating:4.8,reviews:167,specs:"Precision fabrication, seismic anchoring",zips:["941","940"]},
+  {name:"Cascade Stone Supply",type:"Distributor",city:"Seattle, WA",region:"West Coast",rating:4.6,reviews:82,specs:"Marble, basalt, imported slabs",zips:["981","980"]},
+  {name:"Bay Area Stone Restoration",type:"Restoration",city:"San Jose, CA",region:"West Coast",rating:4.7,reviews:59,specs:"Refinishing, sealing, scratch removal",zips:["951","950"]}
+];
+
+const proGrid=document.getElementById('proGrid');
+const proCount=document.getElementById('proCount');
+const proTitle=document.getElementById('proTitle');
+function stars(r){const full=Math.round(r);return '★'.repeat(full)+'☆'.repeat(5-full);}
+
+function renderPros(){
+  const zip=document.getElementById('proZip').value.trim();
+  const region=document.getElementById('proRegion').value;
+  const type=document.getElementById('proType').value;
+  const zip3=zip.slice(0,3);
+
+  let list=PROS.filter(p=>{
+    if(region && p.region!==region)return false;
+    if(type && p.type!==type)return false;
+    return true;
+  });
+
+  if(zip.length>=3){
+    list=list.map(p=>({...p,near:p.zips.includes(zip3)})).sort((a,b)=>(b.near-a.near)||(b.rating-a.rating));
+    proTitle.textContent='Professionals Near '+zip;
+  }else{
+    list=list.sort((a,b)=>b.rating-a.rating);
+    proTitle.textContent=(region||type)?'Filtered Professionals':'Network Professionals';
+  }
+  proCount.textContent=list.length+' pro'+(list.length!==1?'s':'');
+
+  if(!list.length){proGrid.innerHTML='<div class="empty">No professionals match those filters yet. Try a broader region or type &mdash; or request a referral and we&rsquo;ll find one for you.</div>';return;}
+
+  proGrid.innerHTML=list.map(p=>{
+    const badge=p.near?'<span class="match" style="position:static;display:inline-block;margin-left:8px">In your area</span>':'';
+    return `<div class="pro">
+      <div class="ptype">${p.type}</div>
+      <h4>${p.name}${badge}</h4>
+      <div class="loc">${p.city} &middot; ${p.region}</div>
+      <div class="stars">${stars(p.rating)}</div>
+      <div class="rate">${p.rating.toFixed(1)} &middot; ${p.reviews} reviews</div>
+      <div class="specs">${p.specs}</div>
+      <a href="#consult" class="pcta">Request intro</a>
+    </div>`;
+  }).join('');
+}
+['proZip','proRegion','proType'].forEach(id=>document.getElementById(id).addEventListener('input',renderPros));
+renderPros();
+
+/* ---------- wire up ---------- */
+['region','type','q'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+document.getElementById('consultForm').addEventListener('submit',e=>{
+  e.preventDefault();e.target.querySelector('#formMsg').style.display='block';e.target.reset();
+});
+document.getElementById('mt').addEventListener('click',()=>document.getElementById('menu').classList.toggle('open'));
+document.querySelectorAll('#menu a').forEach(a=>a.addEventListener('click',()=>document.getElementById('menu').classList.remove('open')));
+render();
+</script>
+</body>
+</html>

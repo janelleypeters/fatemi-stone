@@ -56,22 +56,8 @@
       <h1 class="serif text-2xl font-semibold tracking-tight">Fatemi Stone</h1>
       <p class="text-xs text-stone-500 uppercase tracking-widest">Visual Slab Match Agent</p>
     </div>
-    <button id="settingsBtn" class="text-sm text-stone-600 hover:text-stone-900">Settings</button>
   </div>
 </header>
-
-<!-- Settings Modal -->
-<div id="settingsModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-    <h3 class="serif text-xl font-semibold mb-1">Anthropic API Key</h3>
-    <p class="text-sm text-stone-500 mb-4">Stored only in your browser. Get one at console.anthropic.com.</p>
-    <input id="apiKeyInput" type="password" placeholder="sk-ant-..." class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono" />
-    <div class="flex gap-2 mt-4 justify-end">
-      <button id="cancelSettings" class="px-4 py-2 text-sm text-stone-600 hover:text-stone-900">Cancel</button>
-      <button id="saveSettings" class="px-4 py-2 text-sm bg-stone-900 text-white rounded hover:bg-stone-800">Save</button>
-    </div>
-  </div>
-</div>
 
 <main class="max-w-6xl mx-auto px-6 py-10">
 
@@ -274,13 +260,13 @@
 <script>
 // ====== STATE ======
 const state = {
-  apiKey: localStorage.getItem('anthropic_api_key') || '',
   imageFile: null,
   imageBase64: null,
   imageMediaType: null,
 };
 
 const MODEL = 'claude-sonnet-4-6';
+const API_ENDPOINT = '/api/claude'; // our own backend, not Anthropic directly
 
 // ====== ELEMENTS ======
 const $ = id => document.getElementById(id);
@@ -291,24 +277,6 @@ const dropContent = $('dropContent');
 const previewContent = $('previewContent');
 const fileName = $('fileName');
 const searchBtn = $('searchBtn');
-
-// ====== SETTINGS ======
-$('settingsBtn').onclick = () => {
-  $('apiKeyInput').value = state.apiKey;
-  $('settingsModal').classList.remove('hidden');
-};
-$('cancelSettings').onclick = () => $('settingsModal').classList.add('hidden');
-$('saveSettings').onclick = () => {
-  state.apiKey = $('apiKeyInput').value.trim();
-  localStorage.setItem('anthropic_api_key', state.apiKey);
-  $('settingsModal').classList.add('hidden');
-  updateSearchButton();
-};
-
-// Show settings on first load if no key
-if (!state.apiKey) {
-  setTimeout(() => $('settingsBtn').click(), 300);
-}
 
 // ====== UPLOAD ======
 fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
@@ -348,7 +316,7 @@ function handleFile(file) {
 }
 
 function updateSearchButton() {
-  searchBtn.disabled = !(state.apiKey && state.imageBase64);
+  searchBtn.disabled = !state.imageBase64;
 }
 
 // ====== AGENT LOG ======
@@ -390,13 +358,10 @@ async function callClaude(messages, tools, system, signal = null, maxTokens = 40
   };
   if (tools) body.tools = tools;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch(API_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': state.apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify(body),
     signal,
@@ -445,13 +410,10 @@ async function callClaudeStreaming(messages, tools, system, onEvent) {
 
   let res;
   try {
-    res = await fetch('https://api.anthropic.com/v1/messages', {
+    res = await fetch(API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify(body),
       signal,
@@ -990,7 +952,6 @@ function escapeAttr(s) { return escapeHTML(s); }
 
 // ====== MAIN FLOW ======
 searchBtn.onclick = async () => {
-  if (!state.apiKey) { $('settingsBtn').click(); return; }
   if (!state.imageBase64) return;
 
   // Reset UI
